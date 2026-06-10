@@ -1,0 +1,251 @@
+{
+  "users": [
+    {
+      "id": "user_001",
+      "email": "demo@mapdiary.dev",
+      "nickname": "따쑬",
+      "avatarUrl": "/mock/images/avatar-demo.png",
+      "mapMode": "globe",
+      "createdAt": "2026-06-01T09:00:00.000Z"
+    }
+  ],
+  "groups": [
+    {
+      "id": "group_japan_2024",
+      "userId": "user_001",
+      "name": "일본 여행",
+      "color": "#FF6B9A",
+      "visibility": "private",
+      "createdAt": "2026-06-01T09:10:00.000Z"
+    },
+    {
+      "id": "group_europe_2025",
+      "userId": "user_001",
+      "name": "유럽 여행",
+      "color": "#7C8CFF",
+      "visibility": "private",
+      "createdAt": "2026-06-01T09:20:00.000Z"
+    },
+    {
+      "id": "group_business_2025",
+      "userId": "user_001",
+      "name": "출장 기록",
+      "color": "#4DD6B6",
+      "visibility": "private",
+      "createdAt": "2026-06-01T09:30:00.000Z"
+    }
+  ],
+  "diaries": [
+    {
+      "id": "diary_001",
+      "userId": "user_001",
+      "groupId": "group_japan_2024",
+      "continent": "Asia",
+      "country": "Japan",
+      "city": "Tokyo",
+      "latitude": 35.6762,
+      "longitude": 139.6503,
+      "visitedDate": "2024-04-03",
+      "title": "도쿄에 도착한 첫날",
+      "content": "공항에서 도심으로 들어오는 길부터 여행이 시작된 느낌이었다. 밤의 도쿄는 생각보다 차분했고, 거리의 조명들이 오래 기억에 남았다.",
+      "visibility": "private",
+      "images": [
+        {
+          "id": "image_001",
+          "imageUrl": "/mock/images/tokyo-01.jpg",
+          "orderIndex": 0
+        }
+      ],
+      "createdAt": "2026-06-01T10:00:00.000Z",
+      "updatedAt": "2026-06-01T10:00:00.000Z"
+    },
+    {
+      "id": "diary_002",
+      "userId": "user_001",
+      "groupId": "group_japan_2024",
+      "continent": "Asia",
+      "country": "Japan",
+      "city": "Tokyo",
+      "latitude": 35.6762,
+      "longitude": 139.6503,
+      "visitedDate": "2024-04-04",
+      "title": "시부야에서 보낸 하루",
+      "content": "시부야 스크램블 교차로를 걸었다. 사람이 많았지만 이상하게 질서정연했고, 카페에서 쉬면서 여행 일정을 다시 정리했다.",
+      "visibility": "private",
+      "images": [
+        {
+          "id": "image_002",
+          "imageUrl": "/mock/images/tokyo-02.jpg",
+          "orderIndex": 0
+        },
+        {
+          "id": "image_003",
+          "imageUrl": "/mock/images/tokyo-03.jpg",
+          "orderIndex": 1
+        }
+      ],
+      "createdAt": "2026-06-01T10:10:00.000Z",
+      "updatedAt": "2026-06-01T10:10:00.000Z"
+    },
+    {
+      "id": "diary_003",
+      "userId": "user_001",
+      "groupId": "group_japan_2024",
+      "continent": "Asia",
+      "country": "Japan",
+      "city": "Osaka",
+      "latitude": 34.6937,
+      "longitude": 135.5023,
+      "visitedDate": "2024-04-06",
+      "title": "오사카의 밤",
+      "content": "도톤보리의 간판과 강가의 분위기가 강렬했다. 길거리 음식을 먹으며 걷는 시간이 가장 즐거웠다.",
+      "visibility": "private",
+      "images": [],
+      "createdAt": "2026-06-01T10:20:00.000Z",
+      "updatedAt": "2026-06-01T10:20:00.000Z"
+    },
+    {
+      "id": "diary_004",
+      "userId": "user_001",
+      "groupId": "group_japan_2024",
+      "continent": "Asia",
+      "country": "Japan",
+      "city": "Kyoto",
+      "latitude": 35.0116,
+      "longitude": 135.7681,
+      "visitedDate": "2024-04-08",
+      "title": "교토에서 느린 산책",
+      "content": "교토는 도쿄와 오사카와 달리 시간이 천천히 흐르는 느낌이었다. 골목과 사찰, 조용한 풍경이 좋았다.",
+      "visibility": "private",
+      "images": [
+        {
+          "id": "image_004",
+          "imageUrl": "/mock/images/kyoto-01.jpg",
+          "orderIndex": 0
+        }
+      ],
+      "createdAt": "2026-06-01T10:30:00.000Z",
+      "updatedAt": "2026-06-01T10:30:00.000Z"
+    },
+    {
+      "id": "diary_005",
+      "userId": "user_001",
+      "groupId": "group_europe_2025",
+      "continent": "Europe",
+      "country": "France",
+      "city": "Paris",
+      "latitude": 48.8566,
+      "longitude": 2.3522,
+      "visitedDate": "2025-05-12",
+      "title": "파리에서의 첫 아침",
+      "content": "숙소 근처 빵집에서 산 크루아상이 인상적이었다. 특별한 일정 없이 걷기만 해도 도시 전체가 여행지처럼 느껴졌다.",
+      "visibility": "private",
+      "images": [
+        {
+          "id": "image_005",
+          "imageUrl": "/mock/images/paris-01.jpg",
+          "orderIndex": 0
+        }
+      ],
+      "createdAt": "2026-06-01T10:40:00.000Z",
+      "updatedAt": "2026-06-01T10:40:00.000Z"
+    },
+    {
+      "id": "diary_006",
+      "userId": "user_001",
+      "groupId": "group_europe_2025",
+      "continent": "Europe",
+      "country": "United Kingdom",
+      "city": "London",
+      "latitude": 51.5072,
+      "longitude": -0.1276,
+      "visitedDate": "2025-05-16",
+      "title": "런던의 흐린 날씨",
+      "content": "날씨는 흐렸지만 도시의 분위기와 잘 어울렸다. 지하철을 타고 이동하며 오래된 도시의 리듬을 느꼈다.",
+      "visibility": "private",
+      "images": [],
+      "createdAt": "2026-06-01T10:50:00.000Z",
+      "updatedAt": "2026-06-01T10:50:00.000Z"
+    },
+    {
+      "id": "diary_007",
+      "userId": "user_001",
+      "groupId": "group_europe_2025",
+      "continent": "Europe",
+      "country": "Italy",
+      "city": "Rome",
+      "latitude": 41.9028,
+      "longitude": 12.4964,
+      "visitedDate": "2025-05-20",
+      "title": "로마의 오래된 풍경",
+      "content": "도시 전체가 거대한 유적지 같았다. 걷다가 마주치는 건물과 광장이 모두 기억에 남았다.",
+      "visibility": "private",
+      "images": [
+        {
+          "id": "image_006",
+          "imageUrl": "/mock/images/rome-01.jpg",
+          "orderIndex": 0
+        }
+      ],
+      "createdAt": "2026-06-01T11:00:00.000Z",
+      "updatedAt": "2026-06-01T11:00:00.000Z"
+    },
+    {
+      "id": "diary_008",
+      "userId": "user_001",
+      "groupId": "group_business_2025",
+      "continent": "North America",
+      "country": "United States",
+      "city": "New York",
+      "latitude": 40.7128,
+      "longitude": -74.006,
+      "visitedDate": "2025-09-10",
+      "title": "뉴욕 출장 첫날",
+      "content": "출장 일정이 빡빡했지만 밤에 잠깐 걸었던 맨해튼 거리가 가장 기억에 남았다.",
+      "visibility": "private",
+      "images": [],
+      "createdAt": "2026-06-01T11:10:00.000Z",
+      "updatedAt": "2026-06-01T11:10:00.000Z"
+    },
+    {
+      "id": "diary_009",
+      "userId": "user_001",
+      "groupId": "group_business_2025",
+      "continent": "Asia",
+      "country": "South Korea",
+      "city": "Seoul",
+      "latitude": 37.5665,
+      "longitude": 126.978,
+      "visitedDate": "2025-09-15",
+      "title": "서울로 돌아온 날",
+      "content": "긴 이동 끝에 서울에 도착했다. 여행과 출장이 끝났다는 안도감이 컸다.",
+      "visibility": "private",
+      "images": [],
+      "createdAt": "2026-06-01T11:20:00.000Z",
+      "updatedAt": "2026-06-01T11:20:00.000Z"
+    },
+    {
+      "id": "diary_010",
+      "userId": "user_001",
+      "groupId": null,
+      "continent": "Asia",
+      "country": "Thailand",
+      "city": "Bangkok",
+      "latitude": 13.7563,
+      "longitude": 100.5018,
+      "visitedDate": "2025-12-02",
+      "title": "방콕에서의 짧은 휴식",
+      "content": "짧은 일정이었지만 따뜻한 공기와 야시장의 활기가 좋았다. 다음에는 더 오래 머물고 싶다.",
+      "visibility": "private",
+      "images": [
+        {
+          "id": "image_007",
+          "imageUrl": "/mock/images/bangkok-01.jpg",
+          "orderIndex": 0
+        }
+      ],
+      "createdAt": "2026-06-01T11:30:00.000Z",
+      "updatedAt": "2026-06-01T11:30:00.000Z"
+    }
+  ]
+}
