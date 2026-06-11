@@ -15,6 +15,10 @@ interface UIState {
   selectedCityKey: string | null;
   setSelectedCityKey: (key: string | null) => void;
 
+  // 카메라가 선택 도시를 중앙에 정착시킨 뒤 설정되는 모달 오픈 신호
+  centeredCityKey: string | null;
+  setCenteredCityKey: (key: string | null) => void;
+
   selectedDiaryId: string | null;
   setSelectedDiaryId: (id: string | null) => void;
 
@@ -36,13 +40,22 @@ export const useUIStore = create<UIState>()(
       selectedGroupId: null,
       // 필터 변경 시 선택된 도시(모달/카메라 포커스)도 함께 해제한다
       setSelectedGroupId: (groupId) =>
-        set({ selectedGroupId: groupId, selectedCityKey: null }),
+        set({
+          selectedGroupId: groupId,
+          selectedCityKey: null,
+          centeredCityKey: null,
+        }),
 
       theme: 'dark',
       setTheme: (theme) => set({ theme }),
 
       selectedCityKey: null,
-      setSelectedCityKey: (key) => set({ selectedCityKey: key }),
+      // 새 도시 선택 시 중앙 정착 신호를 초기화 — 카메라 이동 완료 후 다시 설정된다
+      setSelectedCityKey: (key) =>
+        set({ selectedCityKey: key, centeredCityKey: null }),
+
+      centeredCityKey: null,
+      setCenteredCityKey: (key) => set({ centeredCityKey: key }),
 
       selectedDiaryId: null,
       setSelectedDiaryId: (id) => set({ selectedDiaryId: id }),

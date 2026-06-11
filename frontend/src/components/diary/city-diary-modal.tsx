@@ -1,35 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useDiaries, useGroups } from '@/hooks/use-diary-data';
 import { cityKey } from '@/lib/geo';
 import { useUIStore } from '@/stores/ui-store';
 
-// 도시 클릭 시 카메라가 중심으로 이동(rotateTo, smoothTime 0.3s)을 마친 뒤
-// 모달이 뜨도록 약간의 지연을 둔다.
-const MODAL_OPEN_DELAY_MS = 350;
-
 export function CityDiaryModal() {
   const selectedCityKey = useUIStore((s) => s.selectedCityKey);
+  const centeredCityKey = useUIStore((s) => s.centeredCityKey);
   const setSelectedCityKey = useUIStore((s) => s.setSelectedCityKey);
   const { data: diaries } = useDiaries();
   const { data: groups } = useGroups();
 
-  // 모달 표시는 selectedCityKey에서 분리 — 선택 즉시 카메라만 움직이고,
-  // 지연 후 readyKey를 채운다. 해제/도시 변경 시엔 게이트(아래 open)에서
-  // 즉시 닫히므로 effect에서 동기 setState를 하지 않는다.
-  const [readyKey, setReadyKey] = useState<string | null>(null);
-  useEffect(() => {
-    if (!selectedCityKey) return;
-    const id = setTimeout(
-      () => setReadyKey(selectedCityKey),
-      MODAL_OPEN_DELAY_MS,
-    );
-    return () => clearTimeout(id);
-  }, [selectedCityKey]);
-
-  // 선택이 유효하고(카메라 이동 트리거됨) 지연이 지난 동일 도시일 때만 표시
-  const open = selectedCityKey !== null && readyKey === selectedCityKey;
+  // 카메라가 선택 도시를 중앙에 정착시킨 뒤(centeredCityKey 일치)에만 모달을 연다.
+  const open = selectedCityKey !== null && centeredCityKey === selectedCityKey;
   if (!open || !diaries) return null;
 
   const cityDiaries = diaries

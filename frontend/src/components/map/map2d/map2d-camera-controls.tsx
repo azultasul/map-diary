@@ -45,7 +45,17 @@ export function Map2DCameraControls() {
     );
     if (!marker) return;
     const target = latLngToPlaneVector3(marker.latitude, marker.longitude);
-    void controls.moveTo(target.x, target.y, 0, true);
+    let active = true;
+    // 이동이 끝나(도시가 중앙) Promise가 resolve되면 모달 오픈 신호를 보낸다.
+    // 중간에 다른 도시가 선택되면 stale resolve를 무시한다.
+    void controls.moveTo(target.x, target.y, 0, true).then(() => {
+      if (active && useUIStore.getState().selectedCityKey === selectedCityKey) {
+        useUIStore.getState().setCenteredCityKey(selectedCityKey);
+      }
+    });
+    return () => {
+      active = false;
+    };
   }, [selectedCityKey, cityMarkers]);
 
   useFrame(() => {
