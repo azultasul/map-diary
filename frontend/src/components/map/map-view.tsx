@@ -2,7 +2,9 @@
 
 import { Canvas } from '@react-three/fiber';
 import { useEffect } from 'react';
+import { AllDiariesModal } from '@/components/diary/all-diaries-modal';
 import { CityDiaryModal } from '@/components/diary/city-diary-modal';
+import { DiaryFormModal } from '@/components/diary/diary-form-modal';
 import { FloatingButtons } from '@/components/layout/floating-buttons';
 import { GlobeScene } from '@/components/map/globe/globe-scene';
 import { Map2DScene } from '@/components/map/map2d/map2d-scene';
@@ -27,7 +29,7 @@ export function MapView() {
   }, []);
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden bg-[radial-gradient(ellipse_at_center,_#0b1026_0%,_#04060f_70%)]">
+    <div className="relative h-dvh w-full overflow-hidden bg-[radial-gradient(ellipse_at_center,_#eef2ff_0%,_#cdd9ec_75%)] dark:bg-[radial-gradient(ellipse_at_center,_#0b1026_0%,_#04060f_70%)]">
       {mapMode === 'globe' && (
         <Canvas camera={{ position: GLOBE_INITIAL_CAMERA, fov: 45 }}>
           <GlobeScene />
@@ -40,6 +42,8 @@ export function MapView() {
       )}
       <FloatingButtons />
       <CityDiaryModal />
+      <AllDiariesModal />
+      <DiaryFormModal />
     </div>
   );
 }

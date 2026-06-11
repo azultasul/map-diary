@@ -9,11 +9,16 @@ interface UIState {
   selectedGroupId: string | null;
   setSelectedGroupId: (groupId: string | null) => void;
 
-  theme: 'dark' | 'light';
-  setTheme: (theme: 'dark' | 'light') => void;
-
   selectedCityKey: string | null;
   setSelectedCityKey: (key: string | null) => void;
+
+  // 전체 일기 목록 모달
+  allDiariesOpen: boolean;
+  setAllDiariesOpen: (open: boolean) => void;
+
+  // 일기 추가 모달 (Phase 5에서 실제 폼 연결)
+  diaryFormOpen: boolean;
+  setDiaryFormOpen: (open: boolean) => void;
 
   // 카메라가 선택 도시를 중앙에 정착시킨 뒤 설정되는 모달 오픈 신호
   centeredCityKey: string | null;
@@ -46,8 +51,11 @@ export const useUIStore = create<UIState>()(
           centeredCityKey: null,
         }),
 
-      theme: 'dark',
-      setTheme: (theme) => set({ theme }),
+      allDiariesOpen: false,
+      setAllDiariesOpen: (open) => set({ allDiariesOpen: open }),
+
+      diaryFormOpen: false,
+      setDiaryFormOpen: (open) => set({ diaryFormOpen: open }),
 
       selectedCityKey: null,
       // 새 도시 선택 시 중앙 정착 신호를 초기화 — 카메라 이동 완료 후 다시 설정된다
