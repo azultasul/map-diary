@@ -3,16 +3,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { mesh } from 'topojson-client';
-import type { GeometryCollection, Topology } from 'topojson-specification';
+import type { GeometryCollection } from 'topojson-specification';
 import { GLOBE_RADIUS, geoLinesToPositions } from '@/lib/geo';
-
-async function fetchLandTopology(): Promise<Topology> {
-  const response = await fetch('/land-110m.json');
-  if (!response.ok) {
-    throw new Error(`Failed to fetch land topology: ${response.status}`);
-  }
-  return response.json();
-}
+import { fetchLandTopology } from '@/lib/land';
 
 export function Globe() {
   const { data: topology } = useQuery({
