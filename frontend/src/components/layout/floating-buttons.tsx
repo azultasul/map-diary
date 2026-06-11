@@ -1,7 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { useGroups } from '@/hooks/use-diary-data';
+import { Check, Globe, List, Map as MapIcon, Plus, SlidersHorizontal } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
+import { useDiaries, useGroups } from '@/hooks/use-diary-data';
+import { cn } from '@/lib/utils';
 import { useUIStore } from '@/stores/ui-store';
 
 interface FilterOption {
@@ -10,67 +18,113 @@ interface FilterOption {
   color: string | null;
 }
 
+// glassmorphism 플로팅 버튼 — 시맨틱 토큰으로 라이트/다크 양쪽 대응, 터치 타겟 44px
+const FAB_BASE =
+  'flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background/70 text-foreground shadow-lg backdrop-blur-md transition hover:bg-accent hover:text-accent-foreground';
+
 export function FloatingButtons() {
-  const [filterOpen, setFilterOpen] = useState(false);
   const { data: groups } = useGroups();
+  const { data: diaries } = useDiaries();
   const selectedGroupId = useUIStore((s) => s.selectedGroupId);
   const setSelectedGroupId = useUIStore((s) => s.setSelectedGroupId);
   const mapMode = useUIStore((s) => s.mapMode);
   const setMapMode = useUIStore((s) => s.setMapMode);
+  const setAllDiariesOpen = useUIStore((s) => s.setAllDiariesOpen);
+  const setDiaryFormOpen = useUIStore((s) => s.setDiaryFormOpen);
 
   const hasGroups = !!groups && groups.length > 0;
+  const hasUngrouped = !!diaries && diaries.some((d) => d.groupId === null);
 
   const options: FilterOption[] = hasGroups
     ? [
         { id: null, name: '전체 보기', color: null },
         ...groups.map((g) => ({ id: g.id, name: g.name, color: g.color })),
-        { id: 'ungrouped', name: '그룹 없음', color: null },
+        ...(hasUngrouped
+          ? [{ id: 'ungrouped', name: '그룹 없음', color: null } as FilterOption]
+          : []),
       ]
     : [];
 
   return (
-    <div className="absolute bottom-6 right-6 z-10 flex flex-col items-end gap-2">
-      {hasGroups && filterOpen && (
-        <ul className="rounded-lg border border-white/10 bg-neutral-900/90 p-2 text-sm text-white">
-          {options.map((option) => (
-            <li key={option.id ?? 'all'}>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedGroupId(option.id);
-                  setFilterOpen(false);
-                }}
-                className={`flex w-full items-center gap-2 rounded px-3 py-1.5 text-left hover:bg-white/10 ${
-                  selectedGroupId === option.id ? 'bg-white/15' : ''
-                }`}
-              >
-                {option.color && (
-                  <span
-                    className="h-2.5 w-2.5 rounded-full"
-                    style={{ backgroundColor: option.color }}
-                  />
-                )}
-                {option.name}
-              </button>
-            </li>
-          ))}
-        </ul>
+    <div
+      className={cn(
+        'absolute z-10 flex gap-2',
+        'max-md:bottom-4 max-md:left-1/2 max-md:-translate-x-1/2 max-md:flex-row',
+        'md:bottom-6 md:right-6 md:flex-col md:items-end',
       )}
+    >
+      <ThemeToggle className={FAB_BASE} />
+
       {hasGroups && (
-        <button
-          type="button"
-          onClick={() => setFilterOpen((open) => !open)}
-          className="rounded-full border border-white/15 bg-neutral-900/80 px-4 py-2 text-sm text-white hover:bg-neutral-800"
-        >
-          그룹 필터
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={FAB_BASE}
+            aria-label="그룹 필터"
+            title="그룹 필터"
+          >
+            <SlidersHorizontal className="h-5 w-5" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-44">
+            {options.map((option) => {
+              const active = selectedGroupId === option.id;
+              return (
+                <DropdownMenuItem
+                  key={option.id ?? 'all'}
+                  onClick={() => setSelectedGroupId(option.id)}
+                  className="gap-2"
+                >
+                  <span className="flex h-3 w-3 items-center justify-center">
+                    {option.color ? (
+                      <span
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: option.color }}
+                      />
+                    ) : null}
+                  </span>
+                  <span className="flex-1">{option.name}</span>
+                  {active ? <Check className="h-4 w-4" /> : null}
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
+
       <button
         type="button"
         onClick={() => setMapMode(mapMode === 'globe' ? 'map2d' : 'globe')}
-        className="rounded-full border border-white/15 bg-neutral-900/80 px-4 py-2 text-sm text-white hover:bg-neutral-800"
+        className={FAB_BASE}
+        aria-label={mapMode === 'globe' ? '2D 지도로 전환' : '지구본으로 전환'}
+        title={mapMode === 'globe' ? '2D 지도' : '지구본'}
       >
-        {mapMode === 'globe' ? '2D 지도' : '지구본'}
+        {mapMode === 'globe' ? (
+          <MapIcon className="h-5 w-5" />
+        ) : (
+          <Globe className="h-5 w-5" />
+        )}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setAllDiariesOpen(true)}
+        className={FAB_BASE}
+        aria-label="전체 일기 목록"
+        title="전체 일기 목록"
+      >
+        <List className="h-5 w-5" />
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setDiaryFormOpen(true)}
+        className={cn(
+          FAB_BASE,
+          'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground',
+        )}
+        aria-label="일기 추가"
+        title="일기 추가"
+      >
+        <Plus className="h-5 w-5" />
       </button>
     </div>
   );
