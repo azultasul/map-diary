@@ -15,18 +15,22 @@ export function FloatingButtons() {
   const { data: groups } = useGroups();
   const selectedGroupId = useUIStore((s) => s.selectedGroupId);
   const setSelectedGroupId = useUIStore((s) => s.setSelectedGroupId);
+  const mapMode = useUIStore((s) => s.mapMode);
+  const setMapMode = useUIStore((s) => s.setMapMode);
 
-  if (!groups || groups.length === 0) return null;
+  const hasGroups = !!groups && groups.length > 0;
 
-  const options: FilterOption[] = [
-    { id: null, name: '전체 보기', color: null },
-    ...groups.map((g) => ({ id: g.id, name: g.name, color: g.color })),
-    { id: 'ungrouped', name: '그룹 없음', color: null },
-  ];
+  const options: FilterOption[] = hasGroups
+    ? [
+        { id: null, name: '전체 보기', color: null },
+        ...groups.map((g) => ({ id: g.id, name: g.name, color: g.color })),
+        { id: 'ungrouped', name: '그룹 없음', color: null },
+      ]
+    : [];
 
   return (
     <div className="absolute bottom-6 right-6 z-10 flex flex-col items-end gap-2">
-      {filterOpen && (
+      {hasGroups && filterOpen && (
         <ul className="rounded-lg border border-white/10 bg-neutral-900/90 p-2 text-sm text-white">
           {options.map((option) => (
             <li key={option.id ?? 'all'}>
@@ -52,12 +56,21 @@ export function FloatingButtons() {
           ))}
         </ul>
       )}
+      {hasGroups && (
+        <button
+          type="button"
+          onClick={() => setFilterOpen((open) => !open)}
+          className="rounded-full border border-white/15 bg-neutral-900/80 px-4 py-2 text-sm text-white hover:bg-neutral-800"
+        >
+          그룹 필터
+        </button>
+      )}
       <button
         type="button"
-        onClick={() => setFilterOpen((open) => !open)}
+        onClick={() => setMapMode(mapMode === 'globe' ? 'map2d' : 'globe')}
         className="rounded-full border border-white/15 bg-neutral-900/80 px-4 py-2 text-sm text-white hover:bg-neutral-800"
       >
-        그룹 필터
+        {mapMode === 'globe' ? '2D 지도' : '지구본'}
       </button>
     </div>
   );
