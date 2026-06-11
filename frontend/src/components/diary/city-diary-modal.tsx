@@ -51,17 +51,21 @@ export function CityDiaryModal() {
           </button>
         </div>
         <ul className="space-y-2">
-          {cityDiaries.map((diary) => (
-            <li key={diary.id} className="rounded border border-white/10 p-3">
-              <p className="font-medium">{diary.title}</p>
-              <p className="text-sm text-neutral-400">
-                {diary.visitedDate}
-                {groupNameOf(diary.groupId)
-                  ? ` · ${groupNameOf(diary.groupId)}`
-                  : ''}
-              </p>
-            </li>
-          ))}
+          {cityDiaries.map((diary) => {
+            const groupName = groupNameOf(diary.groupId);
+            return (
+              <li
+                key={diary.id}
+                className="rounded border border-white/10 p-3"
+              >
+                <p className="font-medium">{diary.title}</p>
+                <p className="text-sm text-neutral-400">
+                  {diary.visitedDate}
+                  {groupName ? ` · ${groupName}` : ''}
+                </p>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>
