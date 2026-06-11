@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deriveCityMarkers } from '@/lib/transforms';
+import { deriveCityMarkers, deriveRoutes } from '@/lib/transforms';
 import type { Diary, Group } from '@/types';
 
 const groups: Group[] = [
@@ -87,5 +87,75 @@ describe('deriveCityMarkers', () => {
   it('빈 배열 → 빈 결과', () => {
     const markers = deriveCityMarkers([], groups);
     expect(markers).toEqual([]);
+  });
+});
+
+describe('deriveRoutes', () => {
+  it('created_at 순서로 도시 간 경로 생성', () => {
+    const diaries: Diary[] = [
+      makeDiary({ id: 'd1', city: 'Tokyo', country: 'Japan', latitude: 35.6762, longitude: 139.6503, createdAt: '2026-01-01T01:00:00.000Z' }),
+      makeDiary({ id: 'd2', city: 'Osaka', country: 'Japan', latitude: 34.6937, longitude: 135.5023, createdAt: '2026-01-01T02:00:00.000Z' }),
+    ];
+    const routes = deriveRoutes(diaries, groups);
+    expect(routes).toHaveLength(1);
+    expect(routes[0].from.city).toBe('Tokyo');
+    expect(routes[0].to.city).toBe('Osaka');
+  });
+
+  it('연속 동일 도시 → 경로 합침 (스킵)', () => {
+    const diaries: Diary[] = [
+      makeDiary({ id: 'd1', city: 'Tokyo', country: 'Japan', latitude: 35.6762, longitude: 139.6503, createdAt: '2026-01-01T01:00:00.000Z' }),
+      makeDiary({ id: 'd2', city: 'Tokyo', country: 'Japan', latitude: 35.6762, longitude: 139.6503, createdAt: '2026-01-01T02:00:00.000Z' }),
+      makeDiary({ id: 'd3', city: 'Osaka', country: 'Japan', latitude: 34.6937, longitude: 135.5023, createdAt: '2026-01-01T03:00:00.000Z' }),
+    ];
+    const routes = deriveRoutes(diaries, groups);
+    expect(routes).toHaveLength(1);
+    expect(routes[0].from.city).toBe('Tokyo');
+    expect(routes[0].to.city).toBe('Osaka');
+  });
+
+  it('재방문 → 별도 경로 생성', () => {
+    const diaries: Diary[] = [
+      makeDiary({ id: 'd1', city: 'Tokyo', country: 'Japan', latitude: 35.6762, longitude: 139.6503, createdAt: '2026-01-01T01:00:00.000Z' }),
+      makeDiary({ id: 'd2', city: 'Osaka', country: 'Japan', latitude: 34.6937, longitude: 135.5023, createdAt: '2026-01-01T02:00:00.000Z' }),
+      makeDiary({ id: 'd3', city: 'Tokyo', country: 'Japan', latitude: 35.6762, longitude: 139.6503, createdAt: '2026-01-01T03:00:00.000Z' }),
+    ];
+    const routes = deriveRoutes(diaries, groups);
+    expect(routes).toHaveLength(2);
+    expect(routes[0].from.city).toBe('Tokyo');
+    expect(routes[0].to.city).toBe('Osaka');
+    expect(routes[1].from.city).toBe('Osaka');
+    expect(routes[1].to.city).toBe('Tokyo');
+  });
+
+  it('같은 그룹 → groupColor에 색상', () => {
+    const diaries: Diary[] = [
+      makeDiary({ id: 'd1', city: 'Tokyo', country: 'Japan', latitude: 35.6762, longitude: 139.6503, groupId: 'group_a', createdAt: '2026-01-01T01:00:00.000Z' }),
+      makeDiary({ id: 'd2', city: 'Osaka', country: 'Japan', latitude: 34.6937, longitude: 135.5023, groupId: 'group_a', createdAt: '2026-01-01T02:00:00.000Z' }),
+    ];
+    const routes = deriveRoutes(diaries, groups);
+    expect(routes[0].groupColor).toBe('#FF0000');
+  });
+
+  it('다른 그룹 간 경로 → groupColor null', () => {
+    const diaries: Diary[] = [
+      makeDiary({ id: 'd1', city: 'Tokyo', country: 'Japan', latitude: 35.6762, longitude: 139.6503, groupId: 'group_a', createdAt: '2026-01-01T01:00:00.000Z' }),
+      makeDiary({ id: 'd2', city: 'Osaka', country: 'Japan', latitude: 34.6937, longitude: 135.5023, groupId: 'group_b', createdAt: '2026-01-01T02:00:00.000Z' }),
+    ];
+    const routes = deriveRoutes(diaries, groups);
+    expect(routes[0].groupColor).toBeNull();
+  });
+
+  it('일기 1개 → 경로 없음', () => {
+    const diaries: Diary[] = [
+      makeDiary({ id: 'd1', city: 'Tokyo', country: 'Japan', latitude: 35.6762, longitude: 139.6503 }),
+    ];
+    const routes = deriveRoutes(diaries, groups);
+    expect(routes).toEqual([]);
+  });
+
+  it('빈 배열 → 빈 결과', () => {
+    const routes = deriveRoutes([], groups);
+    expect(routes).toEqual([]);
   });
 });
