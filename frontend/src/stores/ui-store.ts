@@ -16,6 +16,12 @@ interface UIState {
 
   selectedDiaryId: string | null;
   setSelectedDiaryId: (id: string | null) => void;
+
+  hoveredCityKey: string | null;
+  setHoveredCityKey: (key: string | null) => void;
+
+  cameraDistance: number;
+  setCameraDistance: (distance: number) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -33,4 +39,10 @@ export const useUIStore = create<UIState>((set) => ({
 
   selectedDiaryId: null,
   setSelectedDiaryId: (id) => set({ selectedDiaryId: id }),
+
+  hoveredCityKey: null,
+  setHoveredCityKey: (key) => set({ hoveredCityKey: key }),
+
+  cameraDistance: 3,
+  setCameraDistance: (distance) => set({ cameraDistance: distance }),
 }));
