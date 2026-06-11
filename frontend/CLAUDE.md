@@ -16,14 +16,18 @@
 ```
 src/
 ├── app/              # Next.js App Router (라우팅, 레이아웃, 페이지)
-├── components/ui/    # shadcn/ui 컴포넌트
+├── components/
+│   ├── ui/           # shadcn/ui 컴포넌트
+│   ├── map/          # MapView + globe/ (지구본 씬, 핀, 경로, 카메라)
+│   ├── diary/        # 일기 관련 컴포넌트 (도시 일기 목록 모달)
+│   └── layout/       # 레이아웃 컴포넌트 (플로팅 버튼)
 ├── hooks/            # TanStack Query 커스텀 훅 (use-diary-data.ts)
-├── lib/              # 유틸 함수 (transforms.ts, api.ts, utils.ts)
+├── lib/              # 유틸 함수 (transforms.ts, geo.ts, api.ts, utils.ts)
 ├── providers/        # ThemeProvider, QueryProvider
 ├── stores/           # Zustand 스토어 (ui-store.ts)
 └── types/            # 도메인 타입 정의
 tests/
-└── lib/              # 변환 함수 테스트
+└── lib/              # 변환/지오 함수 테스트
 ```
 
 ## 상태 관리 경계
