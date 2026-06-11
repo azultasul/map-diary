@@ -1,13 +1,12 @@
 'use client';
 
-import { useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import {
   AdditiveBlending,
   BackSide,
   CanvasTexture,
-  Color,
   LinearFilter,
   SRGBColorSpace,
   ShaderMaterial,
@@ -21,9 +20,51 @@ import { fetchLandTopology } from '@/lib/land';
 const SEA_COLOR = '#0d1530';
 const LAND_COLOR = '#2c3a5c';
 const COAST_COLOR = 'rgba(168, 186, 224, 0.4)';
-const ATMOSPHERE_COLOR = '#3f5fb8';
 const TEXTURE_WIDTH = 8192;
 const TEXTURE_HEIGHT = 4096;
+
+const atmosphereMaterial = new ShaderMaterial({
+  uniforms: { uTime: { value: 0 } },
+  vertexShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float uTime;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      float intensity = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 4.0);
+
+      float angle = atan(vPosition.z, vPosition.x);
+      float t = fract(angle / (2.0 * 3.14159265) + uTime * 0.08);
+
+      vec3 c1 = vec3(0.247, 0.373, 0.722);
+      vec3 c2 = vec3(0.0,   0.831, 1.0);
+      vec3 c3 = vec3(0.545, 0.0,   1.0);
+
+      vec3 auroraColor;
+      if (t < 0.333) {
+        auroraColor = mix(c1, c2, t / 0.333);
+      } else if (t < 0.667) {
+        auroraColor = mix(c2, c3, (t - 0.333) / 0.334);
+      } else {
+        auroraColor = mix(c3, c1, (t - 0.667) / 0.333);
+      }
+
+      gl_FragColor = vec4(auroraColor, 1.0) * intensity * 0.8;
+    }
+  `,
+  blending: AdditiveBlending,
+  side: BackSide,
+  transparent: true,
+  depthWrite: false,
+});
 
 function lngToX(lng: number): number {
   return ((lng + 180) / 360) * TEXTURE_WIDTH;
@@ -34,35 +75,12 @@ function latToY(lat: number): number {
 }
 
 function Atmosphere() {
-  const material = useMemo(
-    () =>
-      new ShaderMaterial({
-        uniforms: { uColor: { value: new Color(ATMOSPHERE_COLOR) } },
-        vertexShader: `
-          varying vec3 vNormal;
-          void main() {
-            vNormal = normalize(normalMatrix * normal);
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `,
-        fragmentShader: `
-          uniform vec3 uColor;
-          varying vec3 vNormal;
-          void main() {
-            float intensity = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 4.0);
-            gl_FragColor = vec4(uColor, 1.0) * intensity * 0.8;
-          }
-        `,
-        blending: AdditiveBlending,
-        side: BackSide,
-        transparent: true,
-        depthWrite: false,
-      }),
-    [],
-  );
+  useFrame(({ clock }) => {
+    atmosphereMaterial.uniforms.uTime.value = clock.getElapsedTime();
+  });
 
   return (
-    <mesh material={material} scale={1.08} raycast={() => null}>
+    <mesh material={atmosphereMaterial} scale={1.08} raycast={() => null}>
       <sphereGeometry args={[GLOBE_RADIUS, 64, 64]} />
     </mesh>
   );
