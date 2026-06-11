@@ -29,7 +29,9 @@ export const useUIStore = create<UIState>()(
   persist(
     (set) => ({
       mapMode: 'globe',
-      setMapMode: (mode) => set({ mapMode: mode }),
+      // 모드별 거리 스케일이 다르므로 전환 시 해당 모드의 초기 거리로 재설정한다
+      setMapMode: (mode) =>
+        set({ mapMode: mode, cameraDistance: mode === 'globe' ? 3 : 1.8 }),
 
       selectedGroupId: null,
       // 필터 변경 시 선택된 도시(모달/카메라 포커스)도 함께 해제한다
