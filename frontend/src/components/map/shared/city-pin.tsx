@@ -92,8 +92,15 @@ export function CityPin({
         />
       </mesh>
       {hovered && (
-        <Html center distanceFactor={2} position={[0, PIN_RADIUS * 4, 0]}>
-          <div className="pointer-events-none whitespace-nowrap rounded bg-black/70 px-2 py-1 text-xs text-white">
+        // pointerEvents="none": 툴팁 DOM이 포인터를 가로채면 캔버스가 pointerout을
+        // 받아 hover가 토글되며 번쩍인다. 래퍼 자체를 이벤트 비참여로 둔다.
+        <Html
+          center
+          distanceFactor={2}
+          position={[0, PIN_RADIUS * 4, 0]}
+          pointerEvents="none"
+        >
+          <div className="whitespace-nowrap rounded bg-black/70 px-2 py-1 text-xs text-white">
             {marker.city} · {marker.diaryCount}
           </div>
         </Html>
