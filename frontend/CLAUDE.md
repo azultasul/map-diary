@@ -18,7 +18,7 @@ src/
 ├── app/              # Next.js App Router (라우팅, 레이아웃, 페이지)
 ├── components/
 │   ├── ui/           # shadcn/ui 컴포넌트
-│   ├── map/          # MapView + globe/ (지구본 씬, 핀, 경로, 카메라)
+│   ├── map/          # MapView + shared/(공통 핀·경로) + globe/ + map2d/
 │   ├── diary/        # 일기 관련 컴포넌트 (도시 일기 목록 모달)
 │   └── layout/       # 레이아웃 컴포넌트 (플로팅 버튼)
 ├── hooks/            # TanStack Query 커스텀 훅 (use-diary-data.ts)
