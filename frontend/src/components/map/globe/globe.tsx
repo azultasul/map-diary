@@ -2,7 +2,7 @@
 
 import { useFrame, useThree } from '@react-three/fiber';
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   AdditiveBlending,
   BackSide,
@@ -78,6 +78,12 @@ function Atmosphere() {
       }),
     [],
   );
+
+  useEffect(() => {
+    return () => {
+      material.dispose();
+    };
+  }, [material]);
 
   useFrame(({ clock }) => {
     // eslint-disable-next-line react-hooks/immutability
