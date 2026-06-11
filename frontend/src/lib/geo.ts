@@ -1,7 +1,10 @@
 import {
   CatmullRomCurve3,
+  Path,
   QuadraticBezierCurve3,
+  Shape,
   Spherical,
+  Vector2,
   Vector3,
 } from 'three';
 import type { CityMarker } from '@/types';
@@ -138,4 +141,22 @@ export function buildPlaneArcCurve(
   // 베지어 곡선은 제어점들의 볼록 껍질 안에 있으므로 평면 아래로 내려가지 않는다
   control.z = Math.max(from.z, to.z) + 0.05 + distance * 0.15;
   return new QuadraticBezierCurve3(from.clone(), control, to.clone());
+}
+
+function ringToPoints(ring: number[][]): Vector2[] {
+  return ring.map(([lng, lat]) => {
+    const v = latLngToPlaneVector3(lat, lng);
+    return new Vector2(v.x, v.y);
+  });
+}
+
+export function geoPolygonsToShapes(polygons: number[][][][]): Shape[] {
+  return polygons.map((rings) => {
+    const [outer, ...holes] = rings;
+    const shape = new Shape(ringToPoints(outer));
+    for (const hole of holes) {
+      shape.holes.push(new Path(ringToPoints(hole)));
+    }
+    return shape;
+  });
 }

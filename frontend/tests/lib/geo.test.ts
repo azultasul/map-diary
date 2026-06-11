@@ -5,6 +5,7 @@ import {
   cityKey,
   declutterMarkers,
   geoLinesToPositions,
+  geoPolygonsToShapes,
   latLngToCameraAngles,
   latLngToPlaneVector3,
   latLngToVector3,
@@ -236,5 +237,46 @@ describe('buildPlaneArcCurve', () => {
     for (let i = 0; i <= 20; i++) {
       expect(curve.getPoint(i / 20).z).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('geoPolygonsToShapes', () => {
+  const square: number[][] = [
+    [0, 0],
+    [10, 0],
+    [10, 10],
+    [0, 10],
+    [0, 0],
+  ];
+  const innerRing: number[][] = [
+    [2, 2],
+    [4, 2],
+    [4, 4],
+    [2, 4],
+    [2, 2],
+  ];
+
+  it('구멍 없는 폴리곤 1개를 Shape 1개로 변환한다', () => {
+    const shapes = geoPolygonsToShapes([[square]]);
+    expect(shapes).toHaveLength(1);
+    expect(shapes[0].holes).toHaveLength(0);
+  });
+
+  it('외곽 링 좌표가 평면 투영과 일치한다 (GeoJSON [lng, lat] 순서)', () => {
+    const shapes = geoPolygonsToShapes([[square]]);
+    const points = shapes[0].getPoints();
+    const expected = latLngToPlaneVector3(0, 10); // [lng=10, lat=0]
+    expect(points[1].x).toBeCloseTo(expected.x);
+    expect(points[1].y).toBeCloseTo(expected.y);
+  });
+
+  it('내부 링은 hole로 변환된다', () => {
+    const shapes = geoPolygonsToShapes([[square, innerRing]]);
+    expect(shapes[0].holes).toHaveLength(1);
+  });
+
+  it('MultiPolygon은 폴리곤 수만큼 Shape를 만든다', () => {
+    const shapes = geoPolygonsToShapes([[square], [innerRing]]);
+    expect(shapes).toHaveLength(2);
   });
 });
