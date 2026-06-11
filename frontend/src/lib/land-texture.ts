@@ -53,17 +53,12 @@ export function createLandTexture(
     }
   }
 
-  ctx.fillStyle = LAND_COLOR;
-  ctx.strokeStyle = COAST_COLOR;
-  // 해상도에 비해 가는 해안선 + 둥근 모서리/끝으로 부드럽게
-  ctx.lineWidth = Math.max(1, Math.round(texW / 5000));
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
   // 날짜변경선(±180°)을 가로지르는 링은 경도가 180→-180으로 점프해
   // 캔버스 전체를 가로지르는 선을 만든다. 경도를 연속 값으로 언랩한 뒤,
   // 캔버스 폭만큼 좌우로 한 번씩 더 그려 래핑된 부분이 올바른 쪽에 나타나게 한다.
-  for (const rings of polygons) {
-    const unwrapped = rings.map((ring) => {
+  const shifts = [-texW, 0, texW];
+  const unwrappedPolys = polygons.map((rings) =>
+    rings.map((ring) => {
       let offset = 0;
       let prev = ring[0][0];
       return ring.map(([lng, lat]) => {
@@ -78,10 +73,19 @@ export function createLandTexture(
         prev = adjusted;
         return [adjusted, lat] as [number, number];
       });
-    });
-    for (const shiftX of [-texW, 0, texW]) {
+    }),
+  );
+
+  // 경도가 날짜변경선(±180° ≡ 180 mod 360) 위에 있는지
+  const onAntimeridian = (lng: number) =>
+    Math.abs((((lng % 360) + 360) % 360) - 180) < 1e-4;
+
+  // 1) 육지 채우기 — 절단 모서리를 포함한 전체 닫힌 경로로 채워야 정상 채움
+  ctx.fillStyle = LAND_COLOR;
+  for (const rings of unwrappedPolys) {
+    for (const shiftX of shifts) {
       ctx.beginPath();
-      for (const ring of unwrapped) {
+      for (const ring of rings) {
         ring.forEach(([lng, lat], i) => {
           const x = lngToX(lng, texW) + shiftX;
           if (i === 0) ctx.moveTo(x, latToY(lat, texH));
@@ -98,6 +102,27 @@ export function createLandTexture(
         ctx.closePath();
       }
       ctx.fill('evenodd');
+    }
+  }
+
+  // 2) 해안선 — 날짜변경선 절단 모서리(양 끝이 ±180에 걸친 인공 수직선)는
+  // stroke에서 제외해 러시아·남극에 세로선이 생기지 않게 한다.
+  ctx.strokeStyle = COAST_COLOR;
+  ctx.lineWidth = Math.max(1, Math.round(texW / 5000));
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  for (const rings of unwrappedPolys) {
+    for (const shiftX of shifts) {
+      ctx.beginPath();
+      for (const ring of rings) {
+        for (let i = 0; i < ring.length - 1; i++) {
+          const [lngA, latA] = ring[i];
+          const [lngB, latB] = ring[i + 1];
+          if (onAntimeridian(lngA) && onAntimeridian(lngB)) continue;
+          ctx.moveTo(lngToX(lngA, texW) + shiftX, latToY(latA, texH));
+          ctx.lineTo(lngToX(lngB, texW) + shiftX, latToY(latB, texH));
+        }
+      }
       ctx.stroke();
     }
   }
