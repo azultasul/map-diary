@@ -98,13 +98,13 @@ export function cityKey(city: string, country: string): string {
   return `${city}-${country}`;
 }
 
-export function declutterMarkers(
+function declutterByDistance(
   markers: CityMarker[],
-  cameraDistance: number,
+  threshold: number,
   selectedCityKey: string | null,
+  toVector3: (marker: CityMarker) => Vector3,
+  distanceBetween: (a: Vector3, b: Vector3) => number,
 ): CityMarker[] {
-  // 카메라가 멀수록(줌아웃) 각도 임계값이 커져 가까운 핀이 합쳐진다
-  const threshold = Math.max(0, (cameraDistance - 1.8) * 0.06);
   if (threshold === 0) return markers;
 
   const sorted = [...markers].sort((a, b) => b.diaryCount - a.diaryCount);
@@ -112,16 +112,48 @@ export function declutterMarkers(
   const keptVectors: Vector3[] = [];
 
   for (const marker of sorted) {
-    const v = latLngToVector3(marker.latitude, marker.longitude, 1);
+    const v = toVector3(marker);
     const isSelected =
       selectedCityKey === cityKey(marker.city, marker.country);
-    const tooClose = keptVectors.some((k) => k.angleTo(v) < threshold);
+    const tooClose = keptVectors.some((k) => distanceBetween(k, v) < threshold);
     if (isSelected || !tooClose) {
       kept.push(marker);
       keptVectors.push(v);
     }
   }
   return kept;
+}
+
+export function declutterMarkers(
+  markers: CityMarker[],
+  cameraDistance: number,
+  selectedCityKey: string | null,
+): CityMarker[] {
+  // 카메라가 멀수록(줌아웃) 각도 임계값이 커져 가까운 핀이 합쳐진다
+  const threshold = Math.max(0, (cameraDistance - 1.8) * 0.06);
+  return declutterByDistance(
+    markers,
+    threshold,
+    selectedCityKey,
+    (m) => latLngToVector3(m.latitude, m.longitude, 1),
+    (a, b) => a.angleTo(b),
+  );
+}
+
+export function declutterMarkersPlane(
+  markers: CityMarker[],
+  cameraDistance: number,
+  selectedCityKey: string | null,
+): CityMarker[] {
+  // 평면 유클리드 거리 기준 임계값 (2D 카메라 거리 범위 0.5~2.5에 맞춤)
+  const threshold = Math.max(0, (cameraDistance - 0.8) * 0.04);
+  return declutterByDistance(
+    markers,
+    threshold,
+    selectedCityKey,
+    (m) => latLngToPlaneVector3(m.latitude, m.longitude),
+    (a, b) => a.distanceTo(b),
+  );
 }
 
 export function latLngToPlaneVector3(lat: number, lng: number, z = 0): Vector3 {

@@ -4,6 +4,7 @@ import {
   buildPlaneArcCurve,
   cityKey,
   declutterMarkers,
+  declutterMarkersPlane,
   geoLinesToPositions,
   geoPolygonsToShapes,
   latLngToCameraAngles,
@@ -278,5 +279,26 @@ describe('geoPolygonsToShapes', () => {
   it('MultiPolygon은 폴리곤 수만큼 Shape를 만든다', () => {
     const shapes = geoPolygonsToShapes([[square], [innerRing]]);
     expect(shapes).toHaveLength(2);
+  });
+});
+
+describe('declutterMarkersPlane', () => {
+  it('줌인 상태에서는 모든 핀을 유지한다', () => {
+    const result = declutterMarkersPlane(markers, 0.8, null);
+    expect(result).toHaveLength(4);
+  });
+
+  it('줌아웃 상태에서는 가까운 핀끼리 diaryCount가 가장 큰 핀만 남긴다', () => {
+    const result = declutterMarkersPlane(markers, 2.5, null);
+    const cities = result.map((m) => m.city);
+    expect(cities).toContain('Tokyo');
+    expect(cities).toContain('Seoul');
+    expect(cities).not.toContain('Osaka');
+    expect(cities).not.toContain('Kyoto');
+  });
+
+  it('선택된 도시의 핀은 항상 유지한다', () => {
+    const result = declutterMarkersPlane(markers, 2.5, 'Osaka-Japan');
+    expect(result.map((m) => m.city)).toContain('Osaka');
   });
 });
