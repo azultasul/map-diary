@@ -17,9 +17,9 @@ import { GLOBE_RADIUS } from '@/lib/geo';
 import { fetchLandTopology } from '@/lib/land';
 
 // 밝기 단계: 배경 < 바다 < 대륙 (채도 낮춘 슬레이트 톤)
-const SEA_COLOR = '#0d1530';
-const LAND_COLOR = '#2c3a5c';
-const COAST_COLOR = 'rgba(168, 186, 224, 0.4)';
+const SEA_COLOR = '#060b17';
+const LAND_COLOR = '#1b2d47';
+const COAST_COLOR = 'rgba(100, 180, 255, 0.55)';
 const TEXTURE_WIDTH = 8192;
 const TEXTURE_HEIGHT = 4096;
 
