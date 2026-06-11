@@ -185,25 +185,6 @@ export function nearestWrappedX(baseX: number, cameraX: number): number {
   return best;
 }
 
-// 폴리곤 링들을 해안선용 LineSegments 좌표로 변환(평면, z는 땅 윗면).
-export function geoPolygonsToPlaneLinePositions(
-  polygons: number[][][][],
-  z = LAND_DEPTH,
-): Float32Array {
-  const positions: number[] = [];
-  for (const rings of polygons) {
-    for (const ring of rings) {
-      for (let i = 0; i < ring.length - 1; i++) {
-        const [lng1, lat1] = ring[i];
-        const [lng2, lat2] = ring[i + 1];
-        const a = latLngToPlaneVector3(lat1, lng1, z);
-        const b = latLngToPlaneVector3(lat2, lng2, z);
-        positions.push(a.x, a.y, a.z, b.x, b.y, b.z);
-      }
-    }
-  }
-  return new Float32Array(positions);
-}
 
 export function buildPlaneArcCurve(
   from: Vector3,
@@ -216,19 +197,55 @@ export function buildPlaneArcCurve(
   return new QuadraticBezierCurve3(from.clone(), control, to.clone());
 }
 
-function ringToPoints(ring: number[][]): Vector2[] {
+// 날짜변경선(±180°)을 가로지르는 링은 경도가 +180↔-180으로 점프해
+// 지도 전체를 가로지르는 현(chord)을 만든다(유라시아→대서양이 대륙색으로 채워짐).
+// 경도를 연속값으로 언랩하면 링이 ±180을 넘어 이어지고, 넘친 부분은
+// 좌우 타일 복제본이 받아 이음매 없이 연결된다.
+function unwrapRingLng(ring: number[][]): number[][] {
+  let offset = 0;
+  let prev = ring[0][0];
   return ring.map(([lng, lat]) => {
+    let adjusted = lng + offset;
+    if (adjusted - prev > 180) {
+      offset -= 360;
+      adjusted -= 360;
+    } else if (adjusted - prev < -180) {
+      offset += 360;
+      adjusted += 360;
+    }
+    prev = adjusted;
+    return [adjusted, lat];
+  });
+}
+
+function ringToPoints(ring: number[][], closePole: boolean): Vector2[] {
+  const unwrapped = unwrapRingLng(ring);
+  const points = unwrapped.map(([lng, lat]) => {
     const v = latLngToPlaneVector3(lat, lng);
     return new Vector2(v.x, v.y);
   });
+  // 극을 감싸는 링(남극): 언랩 후 시작/끝 경도가 ~360° 차이가 난다.
+  // 그대로 닫으면 위도 현이 생기므로, 지도 위/아래 모서리를 경유해 닫아
+  // 극지방까지 채운다.
+  const dLng = unwrapped[unwrapped.length - 1][0] - unwrapped[0][0];
+  if (closePole && Math.abs(dLng) > 180) {
+    const edgeLat = unwrapped[0][1] < 0 ? -90 : 90;
+    const last = latLngToPlaneVector3(
+      edgeLat,
+      unwrapped[unwrapped.length - 1][0],
+    );
+    const first = latLngToPlaneVector3(edgeLat, unwrapped[0][0]);
+    points.push(new Vector2(last.x, last.y), new Vector2(first.x, first.y));
+  }
+  return points;
 }
 
 export function geoPolygonsToShapes(polygons: number[][][][]): Shape[] {
   return polygons.map((rings) => {
     const [outer, ...holes] = rings;
-    const shape = new Shape(ringToPoints(outer));
+    const shape = new Shape(ringToPoints(outer, true));
     for (const hole of holes) {
-      shape.holes.push(new Path(ringToPoints(hole)));
+      shape.holes.push(new Path(ringToPoints(hole, false)));
     }
     return shape;
   });
