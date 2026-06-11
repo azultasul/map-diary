@@ -1,4 +1,4 @@
-import { QuadraticBezierCurve3, Spherical, Vector3 } from 'three';
+import { CatmullRomCurve3, Spherical, Vector3 } from 'three';
 
 export const GLOBE_RADIUS = 1;
 
@@ -31,15 +31,37 @@ export function buildArcCurve(
   from: Vector3,
   to: Vector3,
   radius: number,
-): QuadraticBezierCurve3 {
-  const distance = from.distanceTo(to);
-  const control = from
-    .clone()
-    .add(to)
-    .multiplyScalar(0.5)
-    .normalize()
-    .multiplyScalar(radius + distance * 0.5);
-  return new QuadraticBezierCurve3(from.clone(), control, to.clone());
+): CatmullRomCurve3 {
+  const fromDir = from.clone().normalize();
+  const toDir = to.clone().normalize();
+  const angle = fromDir.angleTo(toDir);
+
+  // 대척점 근처에서는 cross가 퇴화하므로 임의의 수직축으로 대체한다
+  const axis = new Vector3().crossVectors(fromDir, toDir);
+  if (axis.lengthSq() < 1e-10) {
+    axis.copy(new Vector3(0, 1, 0).cross(fromDir));
+    if (axis.lengthSq() < 1e-10) {
+      axis.copy(new Vector3(1, 0, 0).cross(fromDir));
+    }
+  }
+  axis.normalize();
+
+  // 호 최고 높이는 각거리에 비례한다 (짧은 경로는 낮게, 대륙 간 경로는 높게)
+  const maxAltitude = radius * (0.05 + 0.2 * (angle / Math.PI));
+
+  const segments = 32;
+  const points: Vector3[] = [];
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    const r =
+      from.length() * (1 - t) +
+      to.length() * t +
+      maxAltitude * Math.sin(Math.PI * t);
+    points.push(
+      fromDir.clone().applyAxisAngle(axis, angle * t).multiplyScalar(r),
+    );
+  }
+  return new CatmullRomCurve3(points);
 }
 
 export function geoLinesToPositions(

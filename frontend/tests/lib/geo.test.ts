@@ -52,6 +52,7 @@ describe('buildArcCurve', () => {
   const tokyo = latLngToVector3(35.68, 139.65, 1);
   const seoul = latLngToVector3(37.57, 126.98, 1);
   const paris = latLngToVector3(48.86, 2.35, 1);
+  const buenosAires = latLngToVector3(-34.6, -58.38, 1);
 
   it('곡선의 시작/끝점이 from/to와 일치한다', () => {
     const curve = buildArcCurve(tokyo, seoul, 1);
@@ -59,15 +60,24 @@ describe('buildArcCurve', () => {
     expect(curve.getPoint(1).distanceTo(seoul)).toBeCloseTo(0);
   });
 
-  it('제어점이 구 표면보다 바깥에 있다', () => {
-    const curve = buildArcCurve(tokyo, seoul, 1);
-    expect(curve.v1.length()).toBeGreaterThan(1);
+  it('대척점 근처 경로도 곡선 전체가 구 표면 위에 있다', () => {
+    const curve = buildArcCurve(seoul, buenosAires, 1);
+    for (let i = 0; i <= 20; i++) {
+      expect(curve.getPoint(i / 20).length()).toBeGreaterThan(0.99);
+    }
   });
 
-  it('거리가 먼 경로일수록 제어점이 더 높다', () => {
+  it('곡선 중간점이 구 표면보다 바깥에 있다', () => {
+    const curve = buildArcCurve(tokyo, seoul, 1);
+    expect(curve.getPoint(0.5).length()).toBeGreaterThan(1);
+  });
+
+  it('각거리가 먼 경로일수록 호가 더 높다', () => {
     const short = buildArcCurve(tokyo, seoul, 1);
     const long = buildArcCurve(tokyo, paris, 1);
-    expect(long.v1.length()).toBeGreaterThan(short.v1.length());
+    expect(long.getPoint(0.5).length()).toBeGreaterThan(
+      short.getPoint(0.5).length(),
+    );
   });
 });
 
