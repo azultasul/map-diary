@@ -2,7 +2,7 @@
 
 import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Group } from 'three';
 import { useCityMarkers } from '@/hooks/use-diary-data';
 import {
@@ -20,6 +20,7 @@ const DEFAULT_PIN_COLOR = '#f5f5f5';
 function CityPin({ marker }: { marker: CityMarker }) {
   const groupRef = useRef<Group>(null);
   const [hovered, setHovered] = useState(false);
+  const hoveredRef = useRef(false);
   const key = cityKey(marker.city, marker.country);
   const selected = useUIStore((s) => s.selectedCityKey === key);
   const setSelectedCityKey = useUIStore((s) => s.setSelectedCityKey);
@@ -31,6 +32,15 @@ function CityPin({ marker }: { marker: CityMarker }) {
     [marker.latitude, marker.longitude],
   );
   const color = marker.groupColor ?? DEFAULT_PIN_COLOR;
+
+  useEffect(() => {
+    return () => {
+      if (hoveredRef.current) {
+        document.body.style.cursor = 'auto';
+        useUIStore.getState().setHoveredCityKey(null);
+      }
+    };
+  }, []);
 
   useFrame(({ clock }) => {
     const group = groupRef.current;
@@ -50,11 +60,13 @@ function CityPin({ marker }: { marker: CityMarker }) {
         onPointerOver={(e) => {
           e.stopPropagation();
           setHovered(true);
+          hoveredRef.current = true;
           setHoveredCityKey(key);
           document.body.style.cursor = 'pointer';
         }}
         onPointerOut={() => {
           setHovered(false);
+          hoveredRef.current = false;
           setHoveredCityKey(null);
           document.body.style.cursor = 'auto';
         }}
@@ -62,7 +74,7 @@ function CityPin({ marker }: { marker: CityMarker }) {
         <sphereGeometry args={[PIN_RADIUS, 16, 16]} />
         <meshBasicMaterial color={color} />
       </mesh>
-      <mesh>
+      <mesh raycast={() => null}>
         <sphereGeometry args={[PIN_RADIUS * 2, 16, 16]} />
         <meshBasicMaterial
           color={color}
