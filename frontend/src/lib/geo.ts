@@ -1,4 +1,5 @@
 import { CatmullRomCurve3, Spherical, Vector3 } from 'three';
+import type { CityMarker } from '@/types';
 
 export const GLOBE_RADIUS = 1;
 
@@ -79,4 +80,34 @@ export function geoLinesToPositions(
     }
   }
   return new Float32Array(positions);
+}
+
+export function cityKey(city: string, country: string): string {
+  return `${city}-${country}`;
+}
+
+export function declutterMarkers(
+  markers: CityMarker[],
+  cameraDistance: number,
+  selectedCityKey: string | null,
+): CityMarker[] {
+  // 카메라가 멀수록(줌아웃) 각도 임계값이 커져 가까운 핀이 합쳐진다
+  const threshold = Math.max(0, (cameraDistance - 1.8) * 0.06);
+  if (threshold === 0) return markers;
+
+  const sorted = [...markers].sort((a, b) => b.diaryCount - a.diaryCount);
+  const kept: CityMarker[] = [];
+  const keptVectors: Vector3[] = [];
+
+  for (const marker of sorted) {
+    const v = latLngToVector3(marker.latitude, marker.longitude, 1);
+    const isSelected =
+      selectedCityKey === cityKey(marker.city, marker.country);
+    const tooClose = keptVectors.some((k) => k.angleTo(v) < threshold);
+    if (isSelected || !tooClose) {
+      kept.push(marker);
+      keptVectors.push(v);
+    }
+  }
+  return kept;
 }

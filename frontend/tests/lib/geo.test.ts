@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildArcCurve,
+  cityKey,
+  declutterMarkers,
   geoLinesToPositions,
   latLngToCameraAngles,
   latLngToVector3,
 } from '@/lib/geo';
+import type { CityMarker } from '@/types';
 
 describe('latLngToVector3', () => {
   it('적도/본초자오선 (0, 0)은 +X 축 위의 점으로 변환된다', () => {
@@ -124,5 +127,56 @@ describe('geoLinesToPositions', () => {
     expect(positions[6]).toBeCloseTo(positions[3]);
     expect(positions[7]).toBeCloseTo(positions[4]);
     expect(positions[8]).toBeCloseTo(positions[5]);
+  });
+});
+
+function makeMarker(
+  overrides: Pick<
+    CityMarker,
+    'city' | 'country' | 'latitude' | 'longitude' | 'diaryCount'
+  >,
+): CityMarker {
+  return {
+    continent: 'Asia',
+    groupColor: null,
+    diaryIds: [],
+    ...overrides,
+  };
+}
+
+// Tokyo-Osaka-Kyoto는 서로 가깝고(각거리 < 0.07rad), Seoul은 떨어져 있다(Tokyo와 약 0.18rad)
+const markers: CityMarker[] = [
+  makeMarker({ city: 'Tokyo', country: 'Japan', latitude: 35.68, longitude: 139.65, diaryCount: 3 }),
+  makeMarker({ city: 'Osaka', country: 'Japan', latitude: 34.69, longitude: 135.5, diaryCount: 1 }),
+  makeMarker({ city: 'Kyoto', country: 'Japan', latitude: 35.01, longitude: 135.77, diaryCount: 1 }),
+  makeMarker({ city: 'Seoul', country: 'South Korea', latitude: 37.57, longitude: 126.98, diaryCount: 2 }),
+];
+
+describe('cityKey', () => {
+  it('city-country 형식의 키를 만든다', () => {
+    expect(cityKey('Tokyo', 'Japan')).toBe('Tokyo-Japan');
+  });
+});
+
+describe('declutterMarkers', () => {
+  it('줌인 상태(가까운 카메라)에서는 모든 핀을 유지한다', () => {
+    const result = declutterMarkers(markers, 1.5, null);
+    expect(result).toHaveLength(4);
+  });
+
+  it('줌아웃 상태에서는 가까운 핀끼리 diaryCount가 가장 큰 핀만 남긴다', () => {
+    const result = declutterMarkers(markers, 4, null);
+    const cities = result.map((m) => m.city);
+    expect(cities).toContain('Tokyo');
+    expect(cities).toContain('Seoul');
+    expect(cities).not.toContain('Osaka');
+    expect(cities).not.toContain('Kyoto');
+  });
+
+  it('선택된 도시의 핀은 클러스터링되어도 항상 유지한다', () => {
+    const result = declutterMarkers(markers, 4, 'Osaka-Japan');
+    const cities = result.map((m) => m.city);
+    expect(cities).toContain('Osaka');
+    expect(cities).toContain('Tokyo');
   });
 });
