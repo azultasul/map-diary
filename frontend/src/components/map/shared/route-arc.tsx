@@ -15,10 +15,13 @@ export function RouteArc({
   route,
   curve,
   phase,
+  baseDistance,
 }: {
   route: Route;
   curve: Curve<Vector3>;
   phase: number;
+  // 해당 모드의 초기 카메라 거리. 줌인 시 빛 점이 화면에서 커지지 않도록 축소 기준
+  baseDistance: number;
 }) {
   const dotRef = useRef<Mesh>(null);
   const hoveredCityKey = useUIStore((s) => s.hoveredCityKey);
@@ -37,6 +40,8 @@ export function RouteArc({
     if (!dot) return;
     const t = (clock.elapsedTime * 0.15 + phase) % 1;
     dot.position.copy(curve.getPoint(t));
+    const ratio = useUIStore.getState().cameraDistance / baseDistance;
+    dot.scale.setScalar(Math.min(Math.max(ratio * ratio, 0.15), 1.2));
   });
 
   return (

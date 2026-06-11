@@ -15,8 +15,8 @@ import { fetchLandTopology } from '@/lib/land';
 
 export function LandMesh() {
   const { data: topology } = useQuery({
-    queryKey: ['land-110m'],
-    queryFn: fetchLandTopology,
+    queryKey: ['land', '110m'],
+    queryFn: () => fetchLandTopology('110m'),
     staleTime: Infinity,
   });
 

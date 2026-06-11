@@ -32,6 +32,7 @@ export function CityPins() {
             marker.longitude,
             GLOBE_RADIUS * 1.005,
           )}
+          baseDistance={3}
         />
       ))}
     </>

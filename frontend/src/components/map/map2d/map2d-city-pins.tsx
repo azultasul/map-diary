@@ -34,6 +34,7 @@ export function Map2DCityPins() {
             marker.longitude,
             PIN_HEIGHT,
           )}
+          baseDistance={1.8}
         />
       ))}
     </>

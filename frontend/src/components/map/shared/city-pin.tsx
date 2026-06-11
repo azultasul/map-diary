@@ -14,9 +14,13 @@ const DEFAULT_PIN_COLOR = '#f5f5f5';
 export function CityPin({
   marker,
   position,
+  baseDistance,
 }: {
   marker: CityMarker;
   position: Vector3;
+  // 해당 모드의 초기 카메라 거리. 줌인 시 핀이 화면에서 너무 커지지 않도록
+  // cameraDistance/baseDistance 비율로 핀 크기를 줄인다
+  baseDistance: number;
 }) {
   const groupRef = useRef<Group>(null);
   const [hovered, setHovered] = useState(false);
@@ -42,7 +46,10 @@ export function CityPin({
     if (!group) return;
     const base = hovered ? 1.6 : 1;
     const pulse = selected ? 1 + 0.35 * Math.sin(clock.elapsedTime * 4) : 1;
-    group.scale.setScalar(base * pulse);
+    // 제곱 곡선: 줌인할수록 더 빠르게 작아져 근거리 도시 핀 겹침을 막는다
+    const ratio = useUIStore.getState().cameraDistance / baseDistance;
+    const distanceScale = Math.min(Math.max(ratio * ratio, 0.15), 1.2);
+    group.scale.setScalar(base * pulse * distanceScale);
   });
 
   return (
@@ -70,7 +77,7 @@ export function CityPin({
         <meshBasicMaterial color={color} />
       </mesh>
       <mesh raycast={() => null}>
-        <sphereGeometry args={[PIN_RADIUS * 2, 16, 16]} />
+        <sphereGeometry args={[PIN_RADIUS * 1.6, 16, 16]} />
         <meshBasicMaterial
           color={color}
           transparent

@@ -26,7 +26,7 @@ function GlobeRouteArc({ route, phase }: { route: Route; phase: number }) {
     return buildArcCurve(from, to, GLOBE_RADIUS);
   }, [route]);
 
-  return <RouteArc route={route} curve={curve} phase={phase} />;
+  return <RouteArc route={route} curve={curve} phase={phase} baseDistance={3} />;
 }
 
 export function RouteArcs() {

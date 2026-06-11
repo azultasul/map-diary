@@ -28,7 +28,7 @@ function PlaneRouteArc({ route, phase }: { route: Route; phase: number }) {
     return buildPlaneArcCurve(from, to);
   }, [route]);
 
-  return <RouteArc route={route} curve={curve} phase={phase} />;
+  return <RouteArc route={route} curve={curve} phase={phase} baseDistance={1.8} />;
 }
 
 export function Map2DRouteArcs() {
