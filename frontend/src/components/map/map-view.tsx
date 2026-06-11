@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { CityDiaryModal } from '@/components/diary/city-diary-modal';
 import { FloatingButtons } from '@/components/layout/floating-buttons';
@@ -7,6 +8,10 @@ import { GlobeScene } from '@/components/map/globe/globe-scene';
 import { useUIStore } from '@/stores/ui-store';
 
 export function MapView() {
+  useEffect(() => {
+    void useUIStore.persist.rehydrate();
+  }, []);
+
   const mapMode = useUIStore((s) => s.mapMode);
 
   return (
