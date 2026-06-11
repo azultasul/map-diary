@@ -20,6 +20,7 @@ export function latLngToCameraAngles(
   lat: number,
   lng: number,
 ): { azimuth: number; polar: number } {
+  // radius=1: 카메라 각도는 방향만 필요하므로 크기 독립적이다
   const spherical = new Spherical().setFromVector3(
     latLngToVector3(lat, lng, 1),
   );
