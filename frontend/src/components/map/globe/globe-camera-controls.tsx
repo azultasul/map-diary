@@ -10,6 +10,8 @@ import { useUIStore } from '@/stores/ui-store';
 
 const MIN_DISTANCE = 1.4;
 const MAX_DISTANCE = 4;
+// 도시 포커스 시 줌인 목표 거리 (이미 더 가까우면 현 거리 유지)
+const FOCUS_DISTANCE = 1.8;
 
 export function GlobeCameraControls() {
   const controlsRef = useRef<CameraControlsImpl | null>(null);
@@ -29,9 +31,13 @@ export function GlobeCameraControls() {
       marker.longitude,
     );
     let active = true;
-    // 회전이 끝나(도시가 중앙) Promise가 resolve되면 모달 오픈 신호를 보낸다.
+    // 회전(도시가 중앙) + dolly(줌인)가 모두 끝나면 모달 오픈 신호를 보낸다.
     // 중간에 다른 도시가 선택되면 stale resolve를 무시한다.
-    void controls.rotateTo(azimuth, polar, true).then(() => {
+    const targetDistance = Math.min(controls.distance, FOCUS_DISTANCE);
+    void Promise.all([
+      controls.rotateTo(azimuth, polar, true),
+      controls.dollyTo(targetDistance, true),
+    ]).then(() => {
       if (active && useUIStore.getState().selectedCityKey === selectedCityKey) {
         useUIStore.getState().setCenteredCityKey(selectedCityKey);
       }

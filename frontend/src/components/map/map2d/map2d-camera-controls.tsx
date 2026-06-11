@@ -20,6 +20,8 @@ const MIN_DISTANCE = 0.5;
 // fov 45에서 halfHeight = d*tan(22.5°)=d*0.414, MAP_HEIGHT/2=1 → d≈2.41
 const MAX_DISTANCE = 2.4;
 const INITIAL_DISTANCE = 1.8;
+// 도시 포커스 시 줌인 목표 거리 (이미 더 가까우면 현 거리 유지)
+const FOCUS_DISTANCE = 1.2;
 // 평면 지도를 정면(수직 부감)에서 보도록 polar/azimuth를 잠근다.
 // π/2 = 카메라가 평면 정면(+z)에 위치 → 사선 왜곡 없는 정사각 비율
 const POLAR_ANGLE = Math.PI / 2;
@@ -85,12 +87,17 @@ export function Map2DCameraControls() {
     // 사용자가 클릭한 복제본(현재 카메라에 가장 가까운 쪽)으로 이동
     const camX = controls.getTarget(tmpTarget.current).x;
     const targetX = nearestWrappedX(target.x, camX);
-    const targetY = clampTargetY(target.y, controls.distance);
+    // 줌인 후 거리 기준으로 y 클램프(우주 노출 방지) 계산
+    const focusDistance = Math.min(controls.distance, FOCUS_DISTANCE);
+    const targetY = clampTargetY(target.y, focusDistance);
     let active = true;
     focusingRef.current = true;
-    // 이동이 끝나(도시가 중앙) Promise가 resolve되면 모달 오픈 신호를 보낸다.
+    // 이동(도시가 중앙) + dolly(줌인)가 모두 끝나면 모달 오픈 신호를 보낸다.
     // 중간에 다른 도시가 선택되면 stale resolve를 무시한다.
-    void controls.moveTo(targetX, targetY, 0, true).then(() => {
+    void Promise.all([
+      controls.moveTo(targetX, targetY, 0, true),
+      controls.dollyTo(focusDistance, true),
+    ]).then(() => {
       focusingRef.current = false;
       if (active && useUIStore.getState().selectedCityKey === selectedCityKey) {
         useUIStore.getState().setCenteredCityKey(selectedCityKey);
