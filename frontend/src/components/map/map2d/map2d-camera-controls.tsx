@@ -18,8 +18,9 @@ import { useUIStore } from '@/stores/ui-store';
 const MIN_DISTANCE = 0.5;
 const MAX_DISTANCE = 2.5;
 const INITIAL_DISTANCE = 1.8;
-// 카메라가 약간 기울어진 채로 회전이 고정되도록 polar/azimuth를 잠근다
-const POLAR_ANGLE = Math.PI * 0.65;
+// 평면 지도를 정면(수직 부감)에서 보도록 polar/azimuth를 잠근다.
+// π/2 = 카메라가 평면 정면(+z)에 위치 → 사선 왜곡 없는 정사각 비율
+const POLAR_ANGLE = Math.PI / 2;
 // 초기 중심: 대한민국 상공
 const INITIAL_CENTER = latLngToPlaneVector3(36.5, 127.8);
 // 수평은 무한 래핑이므로 x는 넓게 열어두고, y(극지방)만 막는다
