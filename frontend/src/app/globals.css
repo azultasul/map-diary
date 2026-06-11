@@ -128,3 +128,10 @@
     @apply font-sans;
   }
 }
+
+/* 도시 핀 hover 툴팁: drei <Html> 래퍼 div가 기본 pointer-events:auto라
+   마우스가 툴팁 위를 지나면 캔버스가 pointerout을 받아 hover가 번쩍인다.
+   래퍼 전체를 이벤트 비참여로 만들어 포인터가 그대로 통과하게 한다. */
+.city-pin-tooltip {
+  pointer-events: none;
+}

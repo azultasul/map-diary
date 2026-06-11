@@ -74,7 +74,7 @@ export function CityPin({
           document.body.style.cursor = 'auto';
         }}
       >
-        <sphereGeometry args={[PIN_RADIUS * 3, 8, 8]} />
+        <sphereGeometry args={[PIN_RADIUS * 3, 16, 16]} />
         <meshBasicMaterial transparent opacity={0.001} depthWrite={false} />
       </mesh>
       {/* 비주얼 핀 — 레이캐스팅 비활성 */}
@@ -92,15 +92,18 @@ export function CityPin({
         />
       </mesh>
       {hovered && (
-        // pointerEvents="none": 툴팁 DOM이 포인터를 가로채면 캔버스가 pointerout을
-        // 받아 hover가 토글되며 번쩍인다. 래퍼 자체를 이벤트 비참여로 둔다.
+        // 툴팁 DOM이 포인터를 가로채면 캔버스가 pointerout을 받아 hover가
+        // 번쩍인다. drei <Html>의 pointerEvents prop은 transform 모드에서만
+        // 적용되므로, 래퍼 div는 wrapperClass(.city-pin-tooltip)로, 내부 div는
+        // style/className으로 모든 레이어를 pointer-events:none 처리한다.
         <Html
           center
           distanceFactor={2}
           position={[0, PIN_RADIUS * 4, 0]}
-          pointerEvents="none"
+          wrapperClass="city-pin-tooltip"
+          style={{ pointerEvents: 'none' }}
         >
-          <div className="whitespace-nowrap rounded bg-black/70 px-2 py-1 text-xs text-white">
+          <div className="pointer-events-none whitespace-nowrap rounded bg-black/70 px-2 py-1 text-xs text-white">
             {marker.city} · {marker.diaryCount}
           </div>
         </Html>
