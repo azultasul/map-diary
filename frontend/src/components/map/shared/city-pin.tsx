@@ -54,7 +54,8 @@ export function CityPin({
 
   return (
     <group ref={groupRef} position={position}>
-      {/* 투명 hit-area — 핀보다 넓어서 마우스가 살짝 움직여도 hover 유지 */}
+      {/* 투명 hit-area — 보이는 글로우(*1.6)와 같은 크기로 맞춰 hover 범위가
+          시각과 일치하게 한다. 겹친 도시도 정확히 타겟할 수 있다. */}
       <mesh
         onClick={(e) => {
           e.stopPropagation();
@@ -74,7 +75,7 @@ export function CityPin({
           document.body.style.cursor = 'auto';
         }}
       >
-        <sphereGeometry args={[PIN_RADIUS * 3, 16, 16]} />
+        <sphereGeometry args={[PIN_RADIUS * 1.6, 16, 16]} />
         <meshBasicMaterial transparent opacity={0.001} depthWrite={false} />
       </mesh>
       {/* 비주얼 핀 — 레이캐스팅 비활성 */}
