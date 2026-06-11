@@ -1,5 +1,6 @@
 'use client';
 
+import { useThree } from '@react-three/fiber';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import {
@@ -21,8 +22,8 @@ const SEA_COLOR = '#0d1530';
 const LAND_COLOR = '#2c3a5c';
 const COAST_COLOR = 'rgba(168, 186, 224, 0.4)';
 const ATMOSPHERE_COLOR = '#3f5fb8';
-const TEXTURE_WIDTH = 4096;
-const TEXTURE_HEIGHT = 2048;
+const TEXTURE_WIDTH = 8192;
+const TEXTURE_HEIGHT = 4096;
 
 function lngToX(lng: number): number {
   return ((lng + 180) / 360) * TEXTURE_WIDTH;
@@ -68,6 +69,7 @@ function Atmosphere() {
 }
 
 export function Globe() {
+  const { gl } = useThree();
   const { data: topology } = useQuery({
     queryKey: ['land', '10m'],
     queryFn: () => fetchLandTopology('10m'),
@@ -101,7 +103,7 @@ export function Globe() {
 
     ctx.fillStyle = LAND_COLOR;
     ctx.strokeStyle = COAST_COLOR;
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 2.5;
     ctx.lineJoin = 'round';
     // 날짜변경선(±180°)을 가로지르는 링은 경도가 180→-180으로 점프해
     // 캔버스 전체를 가로지르는 선(구에서는 위도 원 아티팩트)을 만든다.
@@ -153,8 +155,9 @@ export function Globe() {
     // 밉맵은 극점에서 UV가 극압축되며 LOD 링 아티팩트(극 주변 원)를 만들므로 끈다
     canvasTexture.generateMipmaps = false;
     canvasTexture.minFilter = LinearFilter;
+    canvasTexture.anisotropy = gl.capabilities.getMaxAnisotropy();
     return canvasTexture;
-  }, [topology]);
+  }, [topology, gl]);
 
   return (
     <group>
