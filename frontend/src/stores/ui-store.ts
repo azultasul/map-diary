@@ -29,7 +29,9 @@ export const useUIStore = create<UIState>((set) => ({
   setMapMode: (mode) => set({ mapMode: mode }),
 
   selectedGroupId: null,
-  setSelectedGroupId: (groupId) => set({ selectedGroupId: groupId }),
+  // 필터 변경 시 선택된 도시(모달/카메라 포커스)도 함께 해제한다
+  setSelectedGroupId: (groupId) =>
+    set({ selectedGroupId: groupId, selectedCityKey: null }),
 
   theme: 'dark',
   setTheme: (theme) => set({ theme }),
