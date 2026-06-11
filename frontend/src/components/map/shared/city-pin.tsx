@@ -54,6 +54,7 @@ export function CityPin({
 
   return (
     <group ref={groupRef} position={position}>
+      {/* 투명 hit-area — 핀보다 넓어서 마우스가 살짝 움직여도 hover 유지 */}
       <mesh
         onClick={(e) => {
           e.stopPropagation();
@@ -73,6 +74,11 @@ export function CityPin({
           document.body.style.cursor = 'auto';
         }}
       >
+        <sphereGeometry args={[PIN_RADIUS * 3, 8, 8]} />
+        <meshBasicMaterial transparent opacity={0.001} depthWrite={false} />
+      </mesh>
+      {/* 비주얼 핀 — 레이캐스팅 비활성 */}
+      <mesh raycast={() => null}>
         <sphereGeometry args={[PIN_RADIUS, 16, 16]} />
         <meshBasicMaterial color={color} />
       </mesh>
