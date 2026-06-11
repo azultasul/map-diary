@@ -1,4 +1,4 @@
-import { Spherical, Vector3 } from 'three';
+import { QuadraticBezierCurve3, Spherical, Vector3 } from 'three';
 
 export const GLOBE_RADIUS = 1;
 
@@ -25,4 +25,36 @@ export function latLngToCameraAngles(
     latLngToVector3(lat, lng, 1),
   );
   return { azimuth: spherical.theta, polar: spherical.phi };
+}
+
+export function buildArcCurve(
+  from: Vector3,
+  to: Vector3,
+  radius: number,
+): QuadraticBezierCurve3 {
+  const distance = from.distanceTo(to);
+  const control = from
+    .clone()
+    .add(to)
+    .multiplyScalar(0.5)
+    .normalize()
+    .multiplyScalar(radius + distance * 0.5);
+  return new QuadraticBezierCurve3(from.clone(), control, to.clone());
+}
+
+export function geoLinesToPositions(
+  lines: number[][][],
+  radius: number,
+): Float32Array {
+  const positions: number[] = [];
+  for (const line of lines) {
+    for (let i = 0; i < line.length - 1; i++) {
+      const [lng1, lat1] = line[i];
+      const [lng2, lat2] = line[i + 1];
+      const a = latLngToVector3(lat1, lng1, radius);
+      const b = latLngToVector3(lat2, lng2, radius);
+      positions.push(a.x, a.y, a.z, b.x, b.y, b.z);
+    }
+  }
+  return new Float32Array(positions);
 }
