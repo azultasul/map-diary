@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildArcCurve,
+  buildPlaneArcCurve,
   cityKey,
   declutterMarkers,
   geoLinesToPositions,
@@ -204,5 +205,36 @@ describe('latLngToPlaneVector3', () => {
 
   it('z 값이 보존된다', () => {
     expect(latLngToPlaneVector3(10, 20, 0.5).z).toBeCloseTo(0.5);
+  });
+});
+
+describe('buildPlaneArcCurve', () => {
+  const seoul = latLngToPlaneVector3(37.57, 126.98, 0.025);
+  const tokyo = latLngToPlaneVector3(35.68, 139.65, 0.025);
+  const paris = latLngToPlaneVector3(48.86, 2.35, 0.025);
+
+  it('곡선의 시작/끝점이 from/to와 일치한다', () => {
+    const curve = buildPlaneArcCurve(seoul, tokyo);
+    expect(curve.getPoint(0).distanceTo(seoul)).toBeCloseTo(0);
+    expect(curve.getPoint(1).distanceTo(tokyo)).toBeCloseTo(0);
+  });
+
+  it('제어점이 끝점보다 높다 (+Z)', () => {
+    const curve = buildPlaneArcCurve(seoul, tokyo);
+    expect(curve.v1.z).toBeGreaterThan(seoul.z);
+    expect(curve.v1.z).toBeGreaterThan(tokyo.z);
+  });
+
+  it('거리가 먼 경로일수록 제어점이 더 높다', () => {
+    const short = buildPlaneArcCurve(seoul, tokyo);
+    const long = buildPlaneArcCurve(seoul, paris);
+    expect(long.v1.z).toBeGreaterThan(short.v1.z);
+  });
+
+  it('곡선 전체가 평면(z=0) 위에 있다', () => {
+    const curve = buildPlaneArcCurve(seoul, paris);
+    for (let i = 0; i <= 20; i++) {
+      expect(curve.getPoint(i / 20).z).toBeGreaterThan(0);
+    }
   });
 });

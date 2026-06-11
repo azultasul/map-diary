@@ -1,4 +1,9 @@
-import { CatmullRomCurve3, Spherical, Vector3 } from 'three';
+import {
+  CatmullRomCurve3,
+  QuadraticBezierCurve3,
+  Spherical,
+  Vector3,
+} from 'three';
 import type { CityMarker } from '@/types';
 
 export const GLOBE_RADIUS = 1;
@@ -122,4 +127,15 @@ export function latLngToPlaneVector3(lat: number, lng: number, z = 0): Vector3 {
     (lat / 90) * (MAP_HEIGHT / 2),
     z,
   );
+}
+
+export function buildPlaneArcCurve(
+  from: Vector3,
+  to: Vector3,
+): QuadraticBezierCurve3 {
+  const distance = from.distanceTo(to);
+  const control = from.clone().add(to).multiplyScalar(0.5);
+  // 베지어 곡선은 제어점들의 볼록 껍질 안에 있으므로 평면 아래로 내려가지 않는다
+  control.z = Math.max(from.z, to.z) + 0.05 + distance * 0.15;
+  return new QuadraticBezierCurve3(from.clone(), control, to.clone());
 }
