@@ -1,6 +1,7 @@
 'use client';
 
 import { Canvas } from '@react-three/fiber';
+import { CityDiaryModal } from '@/components/diary/city-diary-modal';
 import { GlobeScene } from '@/components/map/globe/globe-scene';
 import { useUIStore } from '@/stores/ui-store';
 
@@ -14,6 +15,7 @@ export function MapView() {
           <GlobeScene />
         </Canvas>
       )}
+      <CityDiaryModal />
     </div>
   );
 }
