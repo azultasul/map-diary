@@ -20,15 +20,17 @@ import { fetchLandTopology } from '@/lib/land';
 const SEA_COLOR = '#060b17';
 const LAND_COLOR = '#1b2d47';
 const COAST_COLOR = 'rgba(100, 180, 255, 0.55)';
-const TEXTURE_WIDTH = 8192;
-const TEXTURE_HEIGHT = 4096;
+// 확대 시 선명도를 위해 16384까지 사용(텍셀 크기 절반). GPU 한계를 넘으면
+// maxTextureSize로 캡한다.
+const TEXTURE_WIDTH = 16384;
+const TEXTURE_HEIGHT = 8192;
 
-function lngToX(lng: number): number {
-  return ((lng + 180) / 360) * TEXTURE_WIDTH;
+function lngToX(lng: number, width: number): number {
+  return ((lng + 180) / 360) * width;
 }
 
-function latToY(lat: number): number {
-  return ((90 - lat) / 180) * TEXTURE_HEIGHT;
+function latToY(lat: number, height: number): number {
+  return ((90 - lat) / 180) * height;
 }
 
 function Atmosphere() {
@@ -55,9 +57,9 @@ function Atmosphere() {
             float angle = atan(vPosition.z, vPosition.x);
             float t = fract(angle / (2.0 * 3.14159265) + uTime * 0.08);
 
-            vec3 c1 = vec3(0.247, 0.373, 0.722);
-            vec3 c2 = vec3(0.0,   0.831, 1.0);
-            vec3 c3 = vec3(0.545, 0.0,   1.0);
+            vec3 c1 = vec3(0.13, 0.34, 1.0);
+            vec3 c2 = vec3(0.0,  0.90, 1.0);
+            vec3 c3 = vec3(0.62, 0.0,  1.0);
 
             vec3 auroraColor;
             if (t < 0.333) {
@@ -68,7 +70,7 @@ function Atmosphere() {
               auroraColor = mix(c3, c1, (t - 0.667) / 0.333);
             }
 
-            gl_FragColor = vec4(auroraColor, 1.0) * intensity * 0.8;
+            gl_FragColor = vec4(auroraColor, 1.0) * intensity * 1.3;
           }
         `,
         blending: AdditiveBlending,
@@ -107,14 +109,18 @@ export function Globe() {
 
   const texture = useMemo(() => {
     if (!topology) return null;
+    // GPU가 지원하는 최대 텍스처 크기로 캡 (대부분 데스크탑 16384)
+    const maxTex = gl.capabilities.maxTextureSize;
+    const texW = Math.min(TEXTURE_WIDTH, maxTex);
+    const texH = Math.min(TEXTURE_HEIGHT, Math.floor(maxTex / 2));
     const canvas = document.createElement('canvas');
-    canvas.width = TEXTURE_WIDTH;
-    canvas.height = TEXTURE_HEIGHT;
+    canvas.width = texW;
+    canvas.height = texH;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
     ctx.fillStyle = SEA_COLOR;
-    ctx.fillRect(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+    ctx.fillRect(0, 0, texW, texH);
 
     const land = feature(
       topology,
@@ -132,7 +138,8 @@ export function Globe() {
 
     ctx.fillStyle = LAND_COLOR;
     ctx.strokeStyle = COAST_COLOR;
-    ctx.lineWidth = 2.5;
+    // 해상도가 2배라 같은 픽셀 폭이면 상대적으로 절반 굵기 → 더 가늘고 깔끔한 해안선
+    ctx.lineWidth = 3;
     ctx.lineJoin = 'round';
     // 날짜변경선(±180°)을 가로지르는 링은 경도가 180→-180으로 점프해
     // 캔버스 전체를 가로지르는 선(구에서는 위도 원 아티팩트)을 만든다.
@@ -155,22 +162,22 @@ export function Globe() {
           return [adjusted, lat] as [number, number];
         });
       });
-      for (const shiftX of [-TEXTURE_WIDTH, 0, TEXTURE_WIDTH]) {
+      for (const shiftX of [-texW, 0, texW]) {
         ctx.beginPath();
         for (const ring of unwrapped) {
           ring.forEach(([lng, lat], i) => {
-            const x = lngToX(lng) + shiftX;
-            if (i === 0) ctx.moveTo(x, latToY(lat));
-            else ctx.lineTo(x, latToY(lat));
+            const x = lngToX(lng, texW) + shiftX;
+            if (i === 0) ctx.moveTo(x, latToY(lat, texH));
+            else ctx.lineTo(x, latToY(lat, texH));
           });
           // 극을 한 바퀴 감싸는 링(남극)은 언랩 후 시작/끝 경도가 360° 차이 난다.
           // 그대로 닫으면 시작 위도를 따라 캔버스를 가로지르는 현이 생겨
           // 구에서 위도 원 아티팩트가 되므로, 캔버스 모서리(극점) 바깥을 경유해 닫는다.
           const dLng = ring[ring.length - 1][0] - ring[0][0];
           if (Math.abs(dLng) > 180) {
-            const edgeY = ring[0][1] < 0 ? TEXTURE_HEIGHT + 4 : -4;
-            ctx.lineTo(lngToX(ring[ring.length - 1][0]) + shiftX, edgeY);
-            ctx.lineTo(lngToX(ring[0][0]) + shiftX, edgeY);
+            const edgeY = ring[0][1] < 0 ? texH + 4 : -4;
+            ctx.lineTo(lngToX(ring[ring.length - 1][0], texW) + shiftX, edgeY);
+            ctx.lineTo(lngToX(ring[0][0], texW) + shiftX, edgeY);
           }
           ctx.closePath();
         }
