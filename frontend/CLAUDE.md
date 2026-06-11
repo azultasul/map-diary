@@ -17,10 +17,13 @@
 src/
 ├── app/              # Next.js App Router (라우팅, 레이아웃, 페이지)
 ├── components/ui/    # shadcn/ui 컴포넌트
-├── lib/              # 유틸 함수 (cn 등)
+├── hooks/            # TanStack Query 커스텀 훅 (use-diary-data.ts)
+├── lib/              # 유틸 함수 (transforms.ts, api.ts, utils.ts)
 ├── providers/        # ThemeProvider, QueryProvider
 ├── stores/           # Zustand 스토어 (ui-store.ts)
 └── types/            # 도메인 타입 정의
+tests/
+└── lib/              # 변환 함수 테스트
 ```
 
 ## 상태 관리 경계
@@ -55,6 +58,8 @@ src/
 | `npm run build` | 프로덕션 빌드 |
 | `npm run lint` | ESLint 실행 |
 | `npm run format` | Prettier 포맷팅 |
+| `npm test` | Vitest 테스트 실행 |
+| `npm run test:watch` | Vitest watch 모드 |
 
 ## 코드 컨벤션
 
