@@ -69,3 +69,9 @@ export interface Route {
   to: { city: string; country: string; latitude: number; longitude: number };
   groupColor: string | null;
 }
+
+export interface MockData {
+  users: User[];
+  groups: Group[];
+  diaries: Diary[];
+}
