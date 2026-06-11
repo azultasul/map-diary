@@ -5,6 +5,7 @@ import {
   declutterMarkers,
   geoLinesToPositions,
   latLngToCameraAngles,
+  latLngToPlaneVector3,
   latLngToVector3,
 } from '@/lib/geo';
 import type { CityMarker } from '@/types';
@@ -178,5 +179,30 @@ describe('declutterMarkers', () => {
     const cities = result.map((m) => m.city);
     expect(cities).toContain('Osaka');
     expect(cities).toContain('Tokyo');
+  });
+});
+
+describe('latLngToPlaneVector3', () => {
+  it('(0, 0)은 평면 원점으로 변환된다', () => {
+    const v = latLngToPlaneVector3(0, 0);
+    expect(v.x).toBeCloseTo(0);
+    expect(v.y).toBeCloseTo(0);
+    expect(v.z).toBeCloseTo(0);
+  });
+
+  it('(90, 180)은 평면 우상단 모서리 (2, 1)로 변환된다', () => {
+    const v = latLngToPlaneVector3(90, 180);
+    expect(v.x).toBeCloseTo(2);
+    expect(v.y).toBeCloseTo(1);
+  });
+
+  it('(-45, -90)은 (-1, -0.5)로 변환된다', () => {
+    const v = latLngToPlaneVector3(-45, -90);
+    expect(v.x).toBeCloseTo(-1);
+    expect(v.y).toBeCloseTo(-0.5);
+  });
+
+  it('z 값이 보존된다', () => {
+    expect(latLngToPlaneVector3(10, 20, 0.5).z).toBeCloseTo(0.5);
   });
 });

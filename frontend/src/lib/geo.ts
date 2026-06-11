@@ -3,6 +3,10 @@ import type { CityMarker } from '@/types';
 
 export const GLOBE_RADIUS = 1;
 
+export const MAP_WIDTH = 4;
+export const MAP_HEIGHT = 2;
+export const LAND_DEPTH = 0.02;
+
 export function latLngToVector3(
   lat: number,
   lng: number,
@@ -110,4 +114,12 @@ export function declutterMarkers(
     }
   }
   return kept;
+}
+
+export function latLngToPlaneVector3(lat: number, lng: number, z = 0): Vector3 {
+  return new Vector3(
+    (lng / 180) * (MAP_WIDTH / 2),
+    (lat / 90) * (MAP_HEIGHT / 2),
+    z,
+  );
 }
