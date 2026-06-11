@@ -5,6 +5,8 @@ import { CityPin } from '@/components/map/shared/city-pin';
 import { useCityMarkers } from '@/hooks/use-diary-data';
 import {
   LAND_DEPTH,
+  MAP_WIDTH,
+  MAP_WRAP_OFFSETS,
   cityKey,
   declutterMarkersPlane,
   latLngToPlaneVector3,
@@ -25,17 +27,22 @@ export function Map2DCityPins() {
 
   return (
     <>
-      {visibleMarkers.map((marker) => (
-        <CityPin
-          key={cityKey(marker.city, marker.country)}
-          marker={marker}
-          position={latLngToPlaneVector3(
-            marker.latitude,
-            marker.longitude,
-            PIN_HEIGHT,
-          )}
-          baseDistance={1.8}
-        />
+      {/* 래핑된 지도에 맞춰 핀도 MAP_WIDTH 간격으로 타일링 */}
+      {MAP_WRAP_OFFSETS.map((k) => (
+        <group key={k} position-x={k * MAP_WIDTH}>
+          {visibleMarkers.map((marker) => (
+            <CityPin
+              key={cityKey(marker.city, marker.country)}
+              marker={marker}
+              position={latLngToPlaneVector3(
+                marker.latitude,
+                marker.longitude,
+                PIN_HEIGHT,
+              )}
+              baseDistance={1.8}
+            />
+          ))}
+        </group>
       ))}
     </>
   );

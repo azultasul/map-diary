@@ -15,6 +15,11 @@ export const MAP_WIDTH = 4;
 export const MAP_HEIGHT = 2;
 export const LAND_DEPTH = 0.02;
 
+// 수평 무한 래핑: 지도(땅/핀/경로)를 좌우로 이만큼 복제해 끝과 끝이 이어지게 한다.
+// 카메라 x는 매 프레임 [-MAP_WIDTH/2, MAP_WIDTH/2]로 되돌려지므로
+// 복제본이 시야를 항상 덮는다(복제본은 정확히 MAP_WIDTH 간격으로 타일링됨).
+export const MAP_WRAP_OFFSETS = [-2, -1, 0, 1, 2];
+
 export function latLngToVector3(
   lat: number,
   lng: number,
@@ -162,6 +167,42 @@ export function latLngToPlaneVector3(lat: number, lng: number, z = 0): Vector3 {
     (lat / 90) * (MAP_HEIGHT / 2),
     z,
   );
+}
+
+// 현재 카메라 x에 가장 가까운 도시 복제본의 x를 구한다. 래핑된 지도에서
+// 사용자가 본 복제본으로 카메라를 이동시켜 세계를 가로지르는 점프를 막는다.
+export function nearestWrappedX(baseX: number, cameraX: number): number {
+  let best = baseX;
+  let bestDist = Math.abs(baseX - cameraX);
+  for (const k of [-1, 1]) {
+    const cand = baseX + k * MAP_WIDTH;
+    const d = Math.abs(cand - cameraX);
+    if (d < bestDist) {
+      bestDist = d;
+      best = cand;
+    }
+  }
+  return best;
+}
+
+// 폴리곤 링들을 해안선용 LineSegments 좌표로 변환(평면, z는 땅 윗면).
+export function geoPolygonsToPlaneLinePositions(
+  polygons: number[][][][],
+  z = LAND_DEPTH,
+): Float32Array {
+  const positions: number[] = [];
+  for (const rings of polygons) {
+    for (const ring of rings) {
+      for (let i = 0; i < ring.length - 1; i++) {
+        const [lng1, lat1] = ring[i];
+        const [lng2, lat2] = ring[i + 1];
+        const a = latLngToPlaneVector3(lat1, lng1, z);
+        const b = latLngToPlaneVector3(lat2, lng2, z);
+        positions.push(a.x, a.y, a.z, b.x, b.y, b.z);
+      }
+    }
+  }
+  return new Float32Array(positions);
 }
 
 export function buildPlaneArcCurve(
