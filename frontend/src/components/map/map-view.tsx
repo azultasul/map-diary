@@ -2,6 +2,7 @@
 
 import { Canvas } from '@react-three/fiber';
 import { CityDiaryModal } from '@/components/diary/city-diary-modal';
+import { FloatingButtons } from '@/components/layout/floating-buttons';
 import { GlobeScene } from '@/components/map/globe/globe-scene';
 import { useUIStore } from '@/stores/ui-store';
 
@@ -15,6 +16,7 @@ export function MapView() {
           <GlobeScene />
         </Canvas>
       )}
+      <FloatingButtons />
       <CityDiaryModal />
     </div>
   );
