@@ -43,6 +43,17 @@ function filterDiaries(
   return diaries.filter((d) => d.groupId === selectedGroupId);
 }
 
+// 그룹 필터가 적용된 diaries (목록 모달용). selectedGroupId가 바뀌면 재계산.
+export function useFilteredDiaries() {
+  const selectedGroupId = useUIStore((s) => s.selectedGroupId);
+
+  return useQuery({
+    queryKey: MOCK_DATA_KEY,
+    queryFn: fetchMockData,
+    select: (data) => filterDiaries(data.diaries, selectedGroupId),
+  });
+}
+
 export function useCityMarkers() {
   const selectedGroupId = useUIStore((s) => s.selectedGroupId);
 

@@ -30,12 +30,18 @@ export function GlobeCameraControls() {
       marker.latitude,
       marker.longitude,
     );
+    // azimuth는 절대각이라 현재 각과 차이가 크면 지구본이 먼 길로 한 바퀴 돈다.
+    // 현재 azimuth 기준 ±π 안의 등가각으로 보정해 최단 경로로 회전한다.
+    const TWO_PI = Math.PI * 2;
+    const current = controls.azimuthAngle;
+    const delta = ((azimuth - current) % TWO_PI + TWO_PI * 1.5) % TWO_PI - Math.PI;
+    const shortestAzimuth = current + delta;
     let active = true;
     // 회전(도시가 중앙) + dolly(줌인)가 모두 끝나면 모달 오픈 신호를 보낸다.
     // 중간에 다른 도시가 선택되면 stale resolve를 무시한다.
     const targetDistance = Math.min(controls.distance, FOCUS_DISTANCE);
     void Promise.all([
-      controls.rotateTo(azimuth, polar, true),
+      controls.rotateTo(shortestAzimuth, polar, true),
       controls.dollyTo(targetDistance, true),
     ]).then(() => {
       if (active && useUIStore.getState().selectedCityKey === selectedCityKey) {

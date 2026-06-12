@@ -41,6 +41,7 @@ export function DiaryFormModal() {
   const setDiaryFormOpen = useUIStore((s) => s.setDiaryFormOpen);
   const editingDiaryId = useUIStore((s) => s.editingDiaryId);
   const setSelectedCityKey = useUIStore((s) => s.setSelectedCityKey);
+  const setSelectedGroupId = useUIStore((s) => s.setSelectedGroupId);
   const { data: diaries } = useDiaries();
   const { data: groups } = useGroups();
   const createDiary = useCreateDiary();
@@ -127,6 +128,9 @@ export function DiaryFormModal() {
       await updateDiary.mutateAsync({ id: editing.id, input });
     } else {
       await createDiary.mutateAsync(input);
+      // 그룹 필터가 걸려 있어도 새 일기가 보이도록 전체보기로 해제하고,
+      // 추가된 도시로 카메라를 포커스한다. (setSelectedGroupId가 city/center 초기화)
+      setSelectedGroupId(null);
       setSelectedCityKey(cityKey(values.city.city, values.city.country));
     }
     setDiaryFormOpen(false);
@@ -214,7 +218,7 @@ export function DiaryFormModal() {
                   if (newGroupError) setNewGroupError('');
                 }}
               />
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 {GROUP_COLORS.map((c) => (
                   <button
                     key={c}
@@ -224,10 +228,28 @@ export function DiaryFormModal() {
                     style={{ backgroundColor: c }}
                     className={cn(
                       'h-6 w-6 rounded-full ring-offset-2 ring-offset-background transition',
-                      newGroupColor === c && 'ring-2 ring-foreground',
+                      newGroupColor.toLowerCase() === c.toLowerCase() &&
+                        'ring-2 ring-foreground',
                     )}
                   />
                 ))}
+                {/* 직접 색 선택 — 팔레트 외 임의 색 */}
+                <label
+                  className="relative h-6 w-6 cursor-pointer overflow-hidden rounded-full border border-border"
+                  aria-label="색 직접 선택"
+                  title="직접 선택"
+                  style={{
+                    background:
+                      'conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)',
+                  }}
+                >
+                  <input
+                    type="color"
+                    value={newGroupColor}
+                    onChange={(e) => setNewGroupColor(e.target.value)}
+                    className="absolute inset-0 cursor-pointer opacity-0"
+                  />
+                </label>
               </div>
               {newGroupError && (
                 <p className="text-xs text-destructive">{newGroupError}</p>

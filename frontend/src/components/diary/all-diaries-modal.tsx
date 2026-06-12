@@ -1,7 +1,8 @@
 'use client';
 
+import { ChevronRight } from 'lucide-react';
 import { ResponsiveModal } from '@/components/ui/responsive-modal';
-import { useDiaries, useGroups } from '@/hooks/use-diary-data';
+import { useFilteredDiaries, useGroups } from '@/hooks/use-diary-data';
 import { cityKey } from '@/lib/geo';
 import { useUIStore } from '@/stores/ui-store';
 
@@ -10,7 +11,7 @@ export function AllDiariesModal() {
   const setAllDiariesOpen = useUIStore((s) => s.setAllDiariesOpen);
   const setSelectedCityKey = useUIStore((s) => s.setSelectedCityKey);
   const setSelectedDiaryId = useUIStore((s) => s.setSelectedDiaryId);
-  const { data: diaries } = useDiaries();
+  const { data: diaries } = useFilteredDiaries();
   const { data: groups } = useGroups();
 
   const sorted = diaries
@@ -46,13 +47,18 @@ export function AllDiariesModal() {
               <button
                 type="button"
                 onClick={() => openDiary(diary.id, diary.city, diary.country)}
-                className="w-full rounded-md border border-border p-3 text-left transition hover:bg-accent hover:text-accent-foreground"
+                className="group flex w-full items-center gap-2 rounded-md border border-border p-3 text-left outline-none transition hover:border-foreground/20 hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
               >
-                <p className="font-medium text-foreground">{diary.title}</p>
-                <p className="text-sm text-muted-foreground">
-                  {diary.city}, {diary.country} · {diary.visitedDate}
-                  {groupName ? ` · ${groupName}` : ''}
-                </p>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium text-foreground">
+                    {diary.title}
+                  </span>
+                  <span className="block text-sm text-muted-foreground">
+                    {diary.city}, {diary.country} · {diary.visitedDate}
+                    {groupName ? ` · ${groupName}` : ''}
+                  </span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
               </button>
             </li>
           );

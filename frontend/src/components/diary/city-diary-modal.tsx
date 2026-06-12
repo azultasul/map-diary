@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ResponsiveModal } from '@/components/ui/responsive-modal';
-import { useDiaries, useGroups } from '@/hooks/use-diary-data';
+import { useFilteredDiaries, useGroups } from '@/hooks/use-diary-data';
 import { useDeleteDiary } from '@/hooks/use-diary-mutations';
 import { cityKey } from '@/lib/geo';
 import { useUIStore } from '@/stores/ui-store';
@@ -19,7 +19,7 @@ export function CityDiaryModal() {
   const setSelectedDiaryId = useUIStore((s) => s.setSelectedDiaryId);
   const setEditingDiaryId = useUIStore((s) => s.setEditingDiaryId);
   const setDiaryFormOpen = useUIStore((s) => s.setDiaryFormOpen);
-  const { data: diaries } = useDiaries();
+  const { data: diaries } = useFilteredDiaries();
   const { data: groups } = useGroups();
   const deleteDiary = useDeleteDiary();
   const [pendingDelete, setPendingDelete] = useState<Diary | null>(null);
@@ -128,7 +128,7 @@ export function CityDiaryModal() {
                   <button
                     type="button"
                     onClick={() => setSelectedDiaryId(diary.id)}
-                    className="group flex w-full items-center gap-2 rounded-md border border-border p-3 text-left transition hover:border-foreground/20 hover:bg-accent hover:text-accent-foreground"
+                    className="group flex w-full items-center gap-2 rounded-md border border-border p-3 text-left outline-none transition hover:border-foreground/20 hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium text-foreground">
