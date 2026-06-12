@@ -9,6 +9,7 @@ export function AllDiariesModal() {
   const allDiariesOpen = useUIStore((s) => s.allDiariesOpen);
   const setAllDiariesOpen = useUIStore((s) => s.setAllDiariesOpen);
   const setSelectedCityKey = useUIStore((s) => s.setSelectedCityKey);
+  const setSelectedDiaryId = useUIStore((s) => s.setSelectedDiaryId);
   const { data: diaries } = useDiaries();
   const { data: groups } = useGroups();
 
@@ -22,8 +23,10 @@ export function AllDiariesModal() {
   const groupNameOf = (groupId: string | null) =>
     groupId ? (groups?.find((g) => g.id === groupId)?.name ?? null) : null;
 
-  const focusCity = (city: string, country: string) => {
-    // 해당 도시로 카메라 포커스 → 정착 후 도시 모달이 열린다
+  const openDiary = (diaryId: string, city: string, country: string) => {
+    // 해당 일기를 상세로 지정 + 도시로 카메라 포커스 → 정착 후 도시 모달이
+    // 그 일기의 상세를 바로 연다.
+    setSelectedDiaryId(diaryId);
     setSelectedCityKey(cityKey(city, country));
     setAllDiariesOpen(false);
   };
@@ -42,7 +45,7 @@ export function AllDiariesModal() {
             <li key={diary.id}>
               <button
                 type="button"
-                onClick={() => focusCity(diary.city, diary.country)}
+                onClick={() => openDiary(diary.id, diary.city, diary.country)}
                 className="w-full rounded-md border border-border p-3 text-left transition hover:bg-accent hover:text-accent-foreground"
               >
                 <p className="font-medium text-foreground">{diary.title}</p>
