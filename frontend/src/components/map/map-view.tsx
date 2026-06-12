@@ -36,9 +36,11 @@ export function MapView() {
   // 테마 미확정(마운트 전)에는 다크 기본 — 씬 팔레트는 Canvas 안으로 prop 전달
   const isDark = !mounted || resolvedTheme !== 'light';
 
-  // 배경도 씬과 같은 isDark에 묶는다 → next-themes의 html.dark 클래스(즉시 전환)
-  // 대신 씬 텍스처가 바뀌는 같은 렌더 커밋에서 배경이 함께 전환돼 속도가 맞는다.
-  const background = isDark
+  // 배경은 isDark(목표)가 아니라 씬이 "새 팔레트 텍스처를 실제로 렌더한 시점"에
+  // 맞춰 전환한다. 텍스처(16384) 재생성/GPU 업로드로 globe가 수백 ms 늦게 반영되는데
+  // 배경 DOM은 즉시 칠해져 어긋나기 때문 — 씬이 onApplied로 신호를 주면 그때 바꾼다.
+  const [appliedDark, setAppliedDark] = useState(true);
+  const background = appliedDark
     ? 'bg-[radial-gradient(ellipse_at_center,_#0b1026_0%,_#04060f_70%)]'
     : 'bg-[radial-gradient(ellipse_at_center,_#eef2ff_0%,_#cdd9ec_75%)]';
 
@@ -48,12 +50,12 @@ export function MapView() {
     >
       {mapMode === 'globe' && (
         <Canvas camera={{ position: GLOBE_INITIAL_CAMERA, fov: 45 }}>
-          <GlobeScene isDark={isDark} />
+          <GlobeScene isDark={isDark} onApplied={setAppliedDark} />
         </Canvas>
       )}
       {mapMode === 'map2d' && (
         <Canvas camera={{ position: MAP2D_INITIAL_CAMERA, fov: 45 }}>
-          <Map2DScene isDark={isDark} />
+          <Map2DScene isDark={isDark} onApplied={setAppliedDark} />
         </Canvas>
       )}
       <FloatingButtons />

@@ -1,8 +1,8 @@
 'use client';
 
-import { useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { usePalette } from '@/components/map/shared/scene-palette';
 import { MAP_HEIGHT, MAP_WIDTH, MAP_WRAP_OFFSETS } from '@/lib/geo';
 import { fetchLandTopology } from '@/lib/land';
@@ -11,7 +11,13 @@ import { createLandTexture } from '@/lib/land-texture';
 // 지구본과 동일하게 16384까지 사용 → 확대 시에도 선명한 해안선
 const TEXTURE_WIDTH = 16384;
 
-export function LandMesh() {
+export function LandMesh({
+  isDark,
+  onApplied,
+}: {
+  isDark: boolean;
+  onApplied: (isDark: boolean) => void;
+}) {
   const { gl } = useThree();
   const palette = usePalette();
   // 지구본과 같은 10m 고해상도 데이터 → 부드럽고 둥글둥글한 디테일 해안선
@@ -27,6 +33,15 @@ export function LandMesh() {
     if (!topology) return null;
     return createLandTexture(topology, gl, palette, TEXTURE_WIDTH);
   }, [topology, gl, palette]);
+
+  // 새 텍스처가 렌더된 프레임에 부모(배경)로 신호 → 배경이 지도와 같은 시점에 전환.
+  const reportedTexture = useRef<unknown>(undefined);
+  useFrame(() => {
+    if (texture && reportedTexture.current !== texture) {
+      reportedTexture.current = texture;
+      onApplied(isDark);
+    }
+  });
 
   if (!texture) {
     return (

@@ -2,7 +2,7 @@
 
 import { useFrame, useThree } from '@react-three/fiber';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { AdditiveBlending, BackSide, ShaderMaterial } from 'three';
 import { usePalette } from '@/components/map/shared/scene-palette';
 import { GLOBE_RADIUS } from '@/lib/geo';
@@ -87,7 +87,13 @@ function Atmosphere() {
   );
 }
 
-export function Globe() {
+export function Globe({
+  isDark,
+  onApplied,
+}: {
+  isDark: boolean;
+  onApplied: (isDark: boolean) => void;
+}) {
   const { gl } = useThree();
   const palette = usePalette();
   const { data: topology } = useQuery({
@@ -100,6 +106,16 @@ export function Globe() {
     if (!topology) return null;
     return createLandTexture(topology, gl, palette, TEXTURE_WIDTH);
   }, [topology, gl, palette]);
+
+  // 새 텍스처가 이 프레임에 바인딩·렌더되면 부모(배경)에 신호 → 배경이 globe와
+  // 같은 시점에 전환된다. 텍스처 식별자가 바뀐 첫 프레임에만 1회 통지.
+  const reportedTexture = useRef<unknown>(undefined);
+  useFrame(() => {
+    if (texture && reportedTexture.current !== texture) {
+      reportedTexture.current = texture;
+      onApplied(isDark);
+    }
+  });
 
   return (
     <group>
