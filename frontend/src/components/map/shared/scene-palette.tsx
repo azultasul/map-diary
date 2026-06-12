@@ -14,6 +14,8 @@ export interface ScenePalette {
   sea: string;
   land: string;
   coast: string;
+  // 국경선(육지 내부 경계) — 해안선보다 옅게
+  border: string;
   // 경로 이동 빛점 코어
   routeDot: string;
   // groupColor 없을 때 fallback
@@ -27,6 +29,7 @@ export const DARK_PALETTE: ScenePalette = {
   sea: '#060b17',
   land: '#1b2d47',
   coast: 'rgba(100, 180, 255, 0.55)',
+  border: 'rgba(130, 165, 215, 0.28)',
   routeDot: '#ffffff',
   defaultPin: '#f5f5f5',
   defaultRoute: '#9aa4b8',
@@ -38,6 +41,7 @@ export const LIGHT_PALETTE: ScenePalette = {
   sea: '#cfe0f0',
   land: '#e8e2d0',
   coast: 'rgba(70, 100, 130, 0.6)',
+  border: 'rgba(95, 115, 140, 0.4)',
   // 연한 회색 — 파스텔 배경에 과하지 않게 묻어가되 옅은 바다·크림에서 식별 가능.
   routeDot: '#9ca3ad',
   defaultPin: '#475569',

@@ -36,8 +36,16 @@ export function MapView() {
   // 테마 미확정(마운트 전)에는 다크 기본 — 씬 팔레트는 Canvas 안으로 prop 전달
   const isDark = !mounted || resolvedTheme !== 'light';
 
+  // 배경도 씬과 같은 isDark에 묶는다 → next-themes의 html.dark 클래스(즉시 전환)
+  // 대신 씬 텍스처가 바뀌는 같은 렌더 커밋에서 배경이 함께 전환돼 속도가 맞는다.
+  const background = isDark
+    ? 'bg-[radial-gradient(ellipse_at_center,_#0b1026_0%,_#04060f_70%)]'
+    : 'bg-[radial-gradient(ellipse_at_center,_#eef2ff_0%,_#cdd9ec_75%)]';
+
   return (
-    <div className="relative h-dvh w-full overflow-hidden bg-[radial-gradient(ellipse_at_center,_#eef2ff_0%,_#cdd9ec_75%)] dark:bg-[radial-gradient(ellipse_at_center,_#0b1026_0%,_#04060f_70%)]">
+    <div
+      className={`relative h-dvh w-full overflow-hidden ${background}`}
+    >
       {mapMode === 'globe' && (
         <Canvas camera={{ position: GLOBE_INITIAL_CAMERA, fov: 45 }}>
           <GlobeScene isDark={isDark} />
