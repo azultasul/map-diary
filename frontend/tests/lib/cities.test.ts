@@ -36,4 +36,34 @@ describe('searchCities', () => {
   it('limit을 적용한다', () => {
     expect(searchCities(cities, 's', 2)).toHaveLength(2);
   });
+
+  it('한국어로 검색한다(ko prefix + q 부분일치)', () => {
+    const ko: City[] = [
+      {
+        city: 'Seoul',
+        country: 'South Korea',
+        continent: 'Asia',
+        latitude: 37.5,
+        longitude: 127,
+        ko: '서울',
+        countryKo: '대한민국',
+        q: 'seoul 서울 경성 south korea 대한민국 한국',
+      },
+      {
+        city: 'Sydney',
+        country: 'Australia',
+        continent: 'Oceania',
+        latitude: -33.8,
+        longitude: 151.2,
+        ko: '시드니',
+        countryKo: '오스트레일리아',
+        q: 'sydney 시드니 australia 오스트레일리아 호주',
+      },
+    ];
+    // 도시 한글명 prefix
+    expect(searchCities(ko, '서울')[0].city).toBe('Seoul');
+    // 국가 한글 별칭(q) 부분일치
+    expect(searchCities(ko, '한국').map((c) => c.city)).toEqual(['Seoul']);
+    expect(searchCities(ko, '호주').map((c) => c.city)).toEqual(['Sydney']);
+  });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronLeft, Pencil, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -83,15 +83,19 @@ export function CityDiaryModal() {
         }
       >
         {detail ? (
-          // 상세 보기
+          // 상세 보기 — 본문, 하단 푸터에 목록(좌)·수정·삭제(우) 아이콘 버튼(동일 크기)
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+              {detail.content}
+            </p>
+            <div className="flex items-center justify-between border-t border-border pt-3">
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon-sm"
+                aria-label="목록으로"
                 onClick={() => setSelectedDiaryId(null)}
               >
-                <ChevronLeft /> 목록
+                <ChevronLeft />
               </Button>
               <div className="flex gap-1">
                 <Button
@@ -106,57 +110,37 @@ export function CityDiaryModal() {
                   variant="ghost"
                   size="icon-sm"
                   aria-label="일기 삭제"
+                  className="text-destructive hover:text-destructive"
                   onClick={() => setPendingDelete(detail)}
                 >
                   <Trash2 />
                 </Button>
               </div>
             </div>
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-              {detail.content}
-            </p>
           </div>
         ) : (
-          // 목록
+          // 목록 — 행 전체가 클릭 영역(전체 hover), 우측에 chevron 어포던스
           <ul className="space-y-2">
             {cityDiaries.map((diary) => {
               const groupName = groupNameOf(diary.groupId);
               return (
-                <li
-                  key={diary.id}
-                  className="flex items-stretch justify-between gap-2 rounded-md border border-border"
-                >
+                <li key={diary.id}>
                   <button
                     type="button"
                     onClick={() => setSelectedDiaryId(diary.id)}
-                    className="min-w-0 flex-1 rounded-l-md p-3 text-left transition hover:bg-accent hover:text-accent-foreground"
+                    className="group flex w-full items-center gap-2 rounded-md border border-border p-3 text-left transition hover:border-foreground/20 hover:bg-accent hover:text-accent-foreground"
                   >
-                    <p className="truncate font-medium text-foreground">
-                      {diary.title}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {diary.visitedDate}
-                      {groupName ? ` · ${groupName}` : ''}
-                    </p>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium text-foreground">
+                        {diary.title}
+                      </span>
+                      <span className="block text-sm text-muted-foreground">
+                        {diary.visitedDate}
+                        {groupName ? ` · ${groupName}` : ''}
+                      </span>
+                    </span>
+                    <ChevronRight className="size-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
                   </button>
-                  <div className="flex shrink-0 items-center gap-1 pr-2">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label="일기 수정"
-                      onClick={() => startEdit(diary.id)}
-                    >
-                      <Pencil />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label="일기 삭제"
-                      onClick={() => setPendingDelete(diary)}
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
                 </li>
               );
             })}
@@ -178,7 +162,6 @@ export function CityDiaryModal() {
         onConfirm={() => {
           if (pendingDelete) {
             deleteDiary.mutate(pendingDelete.id);
-            // 상세에서 삭제했으면 목록으로 복귀
             if (selectedDiaryId === pendingDelete.id) setSelectedDiaryId(null);
           }
         }}

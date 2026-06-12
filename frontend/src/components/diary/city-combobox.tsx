@@ -6,7 +6,8 @@ import { type City, loadCities, searchCities } from '@/lib/cities';
 import { cn } from '@/lib/utils';
 
 function cityLabel(c: City): string {
-  return `${c.city}, ${c.country}`;
+  const city = c.ko ? `${c.city} (${c.ko})` : c.city;
+  return `${city}, ${c.country}`;
 }
 
 // 데이터셋에서 도시를 검색해 선택하는 콤보박스. 선택 시 City 객체를 onChange로 넘긴다.
@@ -121,6 +122,7 @@ export function CityCombobox({
               )}
             >
               <span className="font-medium">{c.city}</span>
+              {c.ko && <span className="text-muted-foreground"> {c.ko}</span>}
               <span className="text-muted-foreground"> · {c.country}</span>
             </li>
           ))}

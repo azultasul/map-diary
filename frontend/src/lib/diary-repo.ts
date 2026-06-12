@@ -1,5 +1,5 @@
 import type { City } from '@/lib/cities';
-import type { Diary, MockData } from '@/types';
+import type { Diary, Group, MockData } from '@/types';
 
 // Phase 5 영속 레이어: localStorage 백엔드.
 // 첫 로드 시 /mock-data.json으로 시드한 뒤, 이후 모든 CRUD는 localStorage에 반영한다.
@@ -113,4 +113,23 @@ export function updateDiary(id: string, input: UpdateDiaryInput): Diary {
 export function deleteDiary(id: string): void {
   const data = requireData();
   write({ ...data, diaries: data.diaries.filter((d) => d.id !== id) });
+}
+
+export interface CreateGroupInput {
+  name: string;
+  color: string;
+}
+
+export function createGroup(input: CreateGroupInput): Group {
+  const data = requireData();
+  const group: Group = {
+    id: crypto.randomUUID(),
+    userId: data.users[0]?.id ?? 'mock-user',
+    name: input.name,
+    color: input.color,
+    visibility: 'private',
+    createdAt: new Date().toISOString(),
+  };
+  write({ ...data, groups: [...data.groups, group] });
+  return group;
 }

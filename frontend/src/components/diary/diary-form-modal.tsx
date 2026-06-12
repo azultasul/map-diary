@@ -1,8 +1,8 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { CityCombobox } from '@/components/diary/city-combobox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,11 +10,23 @@ import { Label } from '@/components/ui/label';
 import { ResponsiveModal } from '@/components/ui/responsive-modal';
 import { Textarea } from '@/components/ui/textarea';
 import { useDiaries, useGroups } from '@/hooks/use-diary-data';
-import { useCreateDiary, useUpdateDiary } from '@/hooks/use-diary-mutations';
+import {
+  useCreateDiary,
+  useCreateGroup,
+  useUpdateDiary,
+} from '@/hooks/use-diary-mutations';
 import type { City } from '@/lib/cities';
 import { type DiaryFormValues, diaryFormSchema } from '@/lib/diary-schema';
 import { cityKey } from '@/lib/geo';
+import { cn } from '@/lib/utils';
 import { useUIStore } from '@/stores/ui-store';
+
+// 새 그룹 선택 색 팔레트(기존 그룹 색감과 동일 계열)
+const GROUP_COLORS = [
+  '#FF6B9A', '#4DD6B6', '#FFB347', '#7C8CFF',
+  '#5BC0EB', '#C792EA', '#FFD166', '#6FCF97',
+];
+const NEW_GROUP = '__new__';
 
 const EMPTY: DiaryFormValues = {
   title: '',
@@ -33,6 +45,11 @@ export function DiaryFormModal() {
   const { data: groups } = useGroups();
   const createDiary = useCreateDiary();
   const updateDiary = useUpdateDiary();
+  const createGroup = useCreateGroup();
+
+  const [newGroupName, setNewGroupName] = useState('');
+  const [newGroupColor, setNewGroupColor] = useState(GROUP_COLORS[0]);
+  const [newGroupError, setNewGroupError] = useState('');
 
   const editing = editingDiaryId
     ? (diaries?.find((d) => d.id === editingDiaryId) ?? null)
@@ -49,9 +66,18 @@ export function DiaryFormModal() {
     defaultValues: EMPTY,
   });
 
-  // 모달이 열릴 때(또는 수정 대상이 바뀔 때) 폼을 채운다.
+  const groupSelection = useWatch({ control, name: 'groupId' });
+  const creatingGroup = groupSelection === NEW_GROUP;
+
+  // 모달이 열릴 때(또는 수정 대상이 바뀔 때) 폼/새그룹 상태를 채운다.
   useEffect(() => {
     if (!diaryFormOpen) return;
+    // 외부(모달 open/editing) → 폼 동기화. open 시 1회성이라 cascading render 우려 없음.
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setNewGroupName('');
+    setNewGroupColor(GROUP_COLORS[0]);
+    setNewGroupError('');
+    /* eslint-enable react-hooks/set-state-in-effect */
     if (editing) {
       reset({
         title: editing.title,
@@ -69,34 +95,41 @@ export function DiaryFormModal() {
     } else {
       reset(EMPTY);
     }
-    // editing.id를 의존성으로 — 객체 자체는 매 렌더 새로 생성될 수 있어 id로 고정
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diaryFormOpen, editingDiaryId]);
 
-  const pending = createDiary.isPending || updateDiary.isPending;
+  const pending =
+    createDiary.isPending || updateDiary.isPending || createGroup.isPending;
 
-  const onSubmit = handleSubmit((values) => {
+  const onSubmit = handleSubmit(async (values) => {
+    let groupId = values.groupId;
+    // 새 그룹 모드면 먼저 그룹을 생성하고 그 id를 사용한다.
+    if (groupId === NEW_GROUP) {
+      const name = newGroupName.trim();
+      if (!name) {
+        setNewGroupError('그룹 이름을 입력하세요');
+        return;
+      }
+      const group = await createGroup.mutateAsync({
+        name,
+        color: newGroupColor,
+      });
+      groupId = group.id;
+    }
     const input = {
       city: values.city,
       visitedDate: values.visitedDate,
       title: values.title,
       content: values.content,
-      groupId: values.groupId,
+      groupId,
     };
     if (editing) {
-      updateDiary.mutate(
-        { id: editing.id, input },
-        { onSuccess: () => setDiaryFormOpen(false) },
-      );
+      await updateDiary.mutateAsync({ id: editing.id, input });
     } else {
-      createDiary.mutate(input, {
-        onSuccess: () => {
-          // 작성 도시를 포커스 → 카메라 이동 후 해당 도시 일기 목록이 열린다
-          setSelectedCityKey(cityKey(values.city.city, values.city.country));
-          setDiaryFormOpen(false);
-        },
-      });
+      await createDiary.mutateAsync(input);
+      setSelectedCityKey(cityKey(values.city.city, values.city.country));
     }
+    setDiaryFormOpen(false);
   });
 
   return (
@@ -167,7 +200,40 @@ export function DiaryFormModal() {
                 {g.name}
               </option>
             ))}
+            <option value={NEW_GROUP}>+ 새 그룹 만들기</option>
           </select>
+
+          {creatingGroup && (
+            <div className="space-y-2 rounded-md border border-border bg-muted/30 p-3">
+              <Input
+                placeholder="새 그룹 이름"
+                value={newGroupName}
+                aria-invalid={!!newGroupError}
+                onChange={(e) => {
+                  setNewGroupName(e.target.value);
+                  if (newGroupError) setNewGroupError('');
+                }}
+              />
+              <div className="flex flex-wrap gap-1.5">
+                {GROUP_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-label={`색 ${c}`}
+                    onClick={() => setNewGroupColor(c)}
+                    style={{ backgroundColor: c }}
+                    className={cn(
+                      'h-6 w-6 rounded-full ring-offset-2 ring-offset-background transition',
+                      newGroupColor === c && 'ring-2 ring-foreground',
+                    )}
+                  />
+                ))}
+              </div>
+              {newGroupError && (
+                <p className="text-xs text-destructive">{newGroupError}</p>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="space-y-1.5">

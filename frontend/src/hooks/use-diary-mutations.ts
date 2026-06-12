@@ -3,8 +3,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   type CreateDiaryInput,
+  type CreateGroupInput,
   type UpdateDiaryInput,
   createDiary,
+  createGroup,
   deleteDiary,
   updateDiary,
 } from '@/lib/diary-repo';
@@ -36,6 +38,15 @@ export function useDeleteDiary() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => deleteDiary(id),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: MOCK_DATA_KEY }),
+  });
+}
+
+export function useCreateGroup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: CreateGroupInput) => createGroup(input),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: MOCK_DATA_KEY }),
   });
