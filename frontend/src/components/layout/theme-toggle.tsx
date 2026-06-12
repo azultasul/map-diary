@@ -17,7 +17,8 @@ export function ThemeToggle({ className }: { className?: string }) {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
-  const isDark = resolvedTheme === 'dark';
+  // 마운트 전에는 서버와 동일하게(테마 미확정) 취급해야 aria-label/title까지 hydration 일치
+  const isDark = mounted && resolvedTheme === 'dark';
 
   return (
     <button
