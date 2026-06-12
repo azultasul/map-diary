@@ -38,10 +38,12 @@ export const LIGHT_PALETTE: ScenePalette = {
   sea: '#cfe0f0',
   land: '#e8e2d0',
   coast: 'rgba(70, 100, 130, 0.6)',
-  routeDot: '#334155',
+  // 연한 회색 — 파스텔 배경에 과하지 않게 묻어가되 옅은 바다·크림에서 식별 가능.
+  routeDot: '#9ca3ad',
   defaultPin: '#475569',
   defaultRoute: '#64748b',
-  atmosphereStrength: 0.35,
+  // 라이트에선 오로라를 더 연하게 (additive라 밝은 배경에서 과하지 않게)
+  atmosphereStrength: 0.18,
 };
 
 const PaletteContext = createContext<ScenePalette>(DARK_PALETTE);
