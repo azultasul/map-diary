@@ -16,9 +16,13 @@ interface UIState {
   allDiariesOpen: boolean;
   setAllDiariesOpen: (open: boolean) => void;
 
-  // 일기 추가 모달 (Phase 5에서 실제 폼 연결)
+  // 일기 추가/수정 모달
   diaryFormOpen: boolean;
   setDiaryFormOpen: (open: boolean) => void;
+
+  // 수정 모드 대상 일기 id (null이면 새 일기 작성)
+  editingDiaryId: string | null;
+  setEditingDiaryId: (id: string | null) => void;
 
   // 카메라가 선택 도시를 중앙에 정착시킨 뒤 설정되는 모달 오픈 신호
   centeredCityKey: string | null;
@@ -55,7 +59,12 @@ export const useUIStore = create<UIState>()(
       setAllDiariesOpen: (open) => set({ allDiariesOpen: open }),
 
       diaryFormOpen: false,
-      setDiaryFormOpen: (open) => set({ diaryFormOpen: open }),
+      // 모달을 닫으면 수정 모드도 함께 해제한다
+      setDiaryFormOpen: (open) =>
+        set(open ? { diaryFormOpen: true } : { diaryFormOpen: false, editingDiaryId: null }),
+
+      editingDiaryId: null,
+      setEditingDiaryId: (id) => set({ editingDiaryId: id }),
 
       selectedCityKey: null,
       // 새 도시 선택 시 중앙 정착 신호를 초기화 — 카메라 이동 완료 후 다시 설정된다
