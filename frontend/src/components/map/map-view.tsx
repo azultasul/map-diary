@@ -1,7 +1,8 @@
 'use client';
 
 import { Canvas } from '@react-three/fiber';
-import { useEffect } from 'react';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 import { AllDiariesModal } from '@/components/diary/all-diaries-modal';
 import { CityDiaryModal } from '@/components/diary/city-diary-modal';
 import { DiaryFormModal } from '@/components/diary/diary-form-modal';
@@ -23,21 +24,28 @@ const MAP2D_INITIAL_CAMERA: [number, number, number] = [
 
 export function MapView() {
   const mapMode = useUIStore((s) => s.mapMode);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     void useUIStore.persist.rehydrate();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
   }, []);
+
+  // 테마 미확정(마운트 전)에는 다크 기본 — 씬 팔레트는 Canvas 안으로 prop 전달
+  const isDark = !mounted || resolvedTheme !== 'light';
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-[radial-gradient(ellipse_at_center,_#eef2ff_0%,_#cdd9ec_75%)] dark:bg-[radial-gradient(ellipse_at_center,_#0b1026_0%,_#04060f_70%)]">
       {mapMode === 'globe' && (
         <Canvas camera={{ position: GLOBE_INITIAL_CAMERA, fov: 45 }}>
-          <GlobeScene />
+          <GlobeScene isDark={isDark} />
         </Canvas>
       )}
       {mapMode === 'map2d' && (
         <Canvas camera={{ position: MAP2D_INITIAL_CAMERA, fov: 45 }}>
-          <Map2DScene />
+          <Map2DScene isDark={isDark} />
         </Canvas>
       )}
       <FloatingButtons />

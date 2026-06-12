@@ -4,12 +4,12 @@ import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import type { Group, Vector3 } from 'three';
+import { usePalette } from '@/components/map/shared/scene-palette';
 import { cityKey } from '@/lib/geo';
 import { useUIStore } from '@/stores/ui-store';
 import type { CityMarker } from '@/types';
 
 const PIN_RADIUS = 0.012;
-const DEFAULT_PIN_COLOR = '#f5f5f5';
 
 export function CityPin({
   marker,
@@ -23,6 +23,7 @@ export function CityPin({
   baseDistance: number;
 }) {
   const groupRef = useRef<Group>(null);
+  const palette = usePalette();
   const [hovered, setHovered] = useState(false);
   const hoveredRef = useRef(false);
   const key = cityKey(marker.city, marker.country);
@@ -30,7 +31,7 @@ export function CityPin({
   const setSelectedCityKey = useUIStore((s) => s.setSelectedCityKey);
   const setHoveredCityKey = useUIStore((s) => s.setHoveredCityKey);
 
-  const color = marker.groupColor ?? DEFAULT_PIN_COLOR;
+  const color = marker.groupColor ?? palette.defaultPin;
 
   useEffect(() => {
     return () => {

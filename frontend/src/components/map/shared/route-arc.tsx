@@ -4,11 +4,11 @@ import { Line } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import type { Curve, Mesh, Vector3 } from 'three';
+import { usePalette } from '@/components/map/shared/scene-palette';
 import { cityKey } from '@/lib/geo';
 import { useUIStore } from '@/stores/ui-store';
 import type { Route } from '@/types';
 
-const DEFAULT_ROUTE_COLOR = '#9aa4b8';
 const DOT_RADIUS = 0.008;
 
 export function RouteArc({
@@ -24,6 +24,7 @@ export function RouteArc({
   baseDistance: number;
 }) {
   const dotRef = useRef<Mesh>(null);
+  const palette = usePalette();
   const hoveredCityKey = useUIStore((s) => s.hoveredCityKey);
 
   const points = useMemo(() => curve.getPoints(64), [curve]);
@@ -33,7 +34,7 @@ export function RouteArc({
     (cityKey(route.from.city, route.from.country) === hoveredCityKey ||
       cityKey(route.to.city, route.to.country) === hoveredCityKey);
 
-  const color = route.groupColor ?? DEFAULT_ROUTE_COLOR;
+  const color = route.groupColor ?? palette.defaultRoute;
 
   useFrame(({ clock }) => {
     const dot = dotRef.current;
@@ -55,7 +56,7 @@ export function RouteArc({
       />
       <mesh ref={dotRef}>
         <sphereGeometry args={[DOT_RADIUS, 8, 8]} />
-        <meshBasicMaterial color="#ffffff" />
+        <meshBasicMaterial color={palette.routeDot} />
       </mesh>
     </group>
   );

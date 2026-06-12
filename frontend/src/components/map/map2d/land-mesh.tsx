@@ -3,15 +3,17 @@
 import { useThree } from '@react-three/fiber';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { usePalette } from '@/components/map/shared/scene-palette';
 import { MAP_HEIGHT, MAP_WIDTH, MAP_WRAP_OFFSETS } from '@/lib/geo';
 import { fetchLandTopology } from '@/lib/land';
-import { SEA_COLOR, createLandTexture } from '@/lib/land-texture';
+import { createLandTexture } from '@/lib/land-texture';
 
 // 지구본과 동일하게 16384까지 사용 → 확대 시에도 선명한 해안선
 const TEXTURE_WIDTH = 16384;
 
 export function LandMesh() {
   const { gl } = useThree();
+  const palette = usePalette();
   // 지구본과 같은 10m 고해상도 데이터 → 부드럽고 둥글둥글한 디테일 해안선
   const { data: topology } = useQuery({
     queryKey: ['land', '10m'],
@@ -23,14 +25,14 @@ export function LandMesh() {
   // 날짜변경선/극지방 처리가 텍스처 단계에서 끝나 삼각분할 아티팩트가 없다.
   const texture = useMemo(() => {
     if (!topology) return null;
-    return createLandTexture(topology, gl, TEXTURE_WIDTH);
-  }, [topology, gl]);
+    return createLandTexture(topology, gl, palette, TEXTURE_WIDTH);
+  }, [topology, gl, palette]);
 
   if (!texture) {
     return (
       <mesh>
         <planeGeometry args={[MAP_WIDTH * 7, MAP_HEIGHT]} />
-        <meshBasicMaterial color={SEA_COLOR} />
+        <meshBasicMaterial color={palette.sea} />
       </mesh>
     );
   }

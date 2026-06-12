@@ -4,19 +4,21 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 import { AdditiveBlending, BackSide, ShaderMaterial } from 'three';
+import { usePalette } from '@/components/map/shared/scene-palette';
 import { GLOBE_RADIUS } from '@/lib/geo';
 import { fetchLandTopology } from '@/lib/land';
-import { SEA_COLOR, createLandTexture } from '@/lib/land-texture';
+import { createLandTexture } from '@/lib/land-texture';
 
 // 확대 시 선명도를 위해 16384까지 사용(텍셀 크기 절반). GPU 한계를 넘으면
 // maxTextureSize로 캡한다.
 const TEXTURE_WIDTH = 16384;
 
 function Atmosphere() {
+  const { atmosphereStrength } = usePalette();
   const material = useMemo(
     () =>
       new ShaderMaterial({
-        uniforms: { uTime: { value: 0 } },
+        uniforms: { uTime: { value: 0 }, uStrength: { value: 1 } },
         vertexShader: `
           varying vec3 vNormal;
           varying vec3 vPosition;
@@ -28,6 +30,7 @@ function Atmosphere() {
         `,
         fragmentShader: `
           uniform float uTime;
+          uniform float uStrength;
           varying vec3 vNormal;
           varying vec3 vPosition;
           void main() {
@@ -49,7 +52,7 @@ function Atmosphere() {
               auroraColor = mix(c3, c1, (t - 0.667) / 0.333);
             }
 
-            gl_FragColor = vec4(auroraColor, 1.0) * intensity * 1.3;
+            gl_FragColor = vec4(auroraColor, 1.0) * intensity * 1.3 * uStrength;
           }
         `,
         blending: AdditiveBlending,
@@ -66,6 +69,12 @@ function Atmosphere() {
     };
   }, [material]);
 
+  // 테마 전환 시 글로우 강도 반영 (라이트에서 은은하게 약화)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
+    material.uniforms.uStrength.value = atmosphereStrength;
+  }, [material, atmosphereStrength]);
+
   useFrame(({ clock }) => {
     // eslint-disable-next-line react-hooks/immutability
     material.uniforms.uTime.value = clock.getElapsedTime();
@@ -80,6 +89,7 @@ function Atmosphere() {
 
 export function Globe() {
   const { gl } = useThree();
+  const palette = usePalette();
   const { data: topology } = useQuery({
     queryKey: ['land', '10m'],
     queryFn: () => fetchLandTopology('10m'),
@@ -88,8 +98,8 @@ export function Globe() {
 
   const texture = useMemo(() => {
     if (!topology) return null;
-    return createLandTexture(topology, gl, TEXTURE_WIDTH);
-  }, [topology, gl]);
+    return createLandTexture(topology, gl, palette, TEXTURE_WIDTH);
+  }, [topology, gl, palette]);
 
   return (
     <group>
@@ -99,7 +109,7 @@ export function Globe() {
         {texture ? (
           <meshBasicMaterial key="textured" map={texture} />
         ) : (
-          <meshBasicMaterial key="plain" color={SEA_COLOR} />
+          <meshBasicMaterial key="plain" color={palette.sea} />
         )}
       </mesh>
       <Atmosphere />

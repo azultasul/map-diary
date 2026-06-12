@@ -6,12 +6,7 @@ import {
 } from 'three';
 import { feature } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
-
-// 지구본·2D 지도가 공유하는 팔레트 (한 곳에서 관리 → 디자인 일관성)
-// 밝기 단계: 배경 < 바다 < 대륙 (채도 낮춘 슬레이트 톤)
-export const SEA_COLOR = '#060b17';
-export const LAND_COLOR = '#1b2d47';
-export const COAST_COLOR = 'rgba(100, 180, 255, 0.55)';
+import type { ScenePalette } from '@/components/map/shared/scene-palette';
 
 function lngToX(lng: number, width: number): number {
   return ((lng + 180) / 360) * width;
@@ -27,6 +22,7 @@ function latToY(lat: number, height: number): number {
 export function createLandTexture(
   topology: Topology,
   gl: WebGLRenderer,
+  palette: Pick<ScenePalette, 'sea' | 'land' | 'coast'>,
   desiredWidth = 16384,
 ): CanvasTexture | null {
   // GPU가 지원하는 최대 텍스처 크기로 캡 (대부분 데스크탑 16384)
@@ -39,7 +35,7 @@ export function createLandTexture(
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
 
-  ctx.fillStyle = SEA_COLOR;
+  ctx.fillStyle = palette.sea;
   ctx.fillRect(0, 0, texW, texH);
 
   const land = feature(topology, topology.objects.land as GeometryCollection);
@@ -81,7 +77,7 @@ export function createLandTexture(
     Math.abs((((lng % 360) + 360) % 360) - 180) < 1e-4;
 
   // 1) 육지 채우기 — 절단 모서리를 포함한 전체 닫힌 경로로 채워야 정상 채움
-  ctx.fillStyle = LAND_COLOR;
+  ctx.fillStyle = palette.land;
   for (const rings of unwrappedPolys) {
     for (const shiftX of shifts) {
       ctx.beginPath();
@@ -107,7 +103,7 @@ export function createLandTexture(
 
   // 2) 해안선 — 날짜변경선 절단 모서리(양 끝이 ±180에 걸친 인공 수직선)는
   // stroke에서 제외해 러시아·남극에 세로선이 생기지 않게 한다.
-  ctx.strokeStyle = COAST_COLOR;
+  ctx.strokeStyle = palette.coast;
   ctx.lineWidth = Math.max(1, Math.round(texW / 5000));
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
