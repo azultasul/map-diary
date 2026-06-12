@@ -1,5 +1,5 @@
 import type { City } from '@/lib/cities';
-import type { Diary, Group, MockData } from '@/types';
+import type { CityRef, Diary, Group, MockData } from '@/types';
 
 // Phase 5 영속 레이어: localStorage 백엔드.
 // 첫 로드 시 /mock-data.json으로 시드한 뒤, 이후 모든 CRUD는 localStorage에 반영한다.
@@ -118,6 +118,8 @@ export function deleteDiary(id: string): void {
 export interface CreateGroupInput {
   name: string;
   color: string;
+  departure: CityRef | null;
+  arrival: CityRef | null;
 }
 
 export function createGroup(input: CreateGroupInput): Group {
@@ -127,9 +129,30 @@ export function createGroup(input: CreateGroupInput): Group {
     userId: data.users[0]?.id ?? 'mock-user',
     name: input.name,
     color: input.color,
+    departure: input.departure,
+    arrival: input.arrival,
     visibility: 'private',
     createdAt: new Date().toISOString(),
   };
   write({ ...data, groups: [...data.groups, group] });
   return group;
+}
+
+export interface UpdateGroupInput {
+  name: string;
+  color: string;
+  departure: CityRef | null;
+  arrival: CityRef | null;
+}
+
+export function updateGroup(id: string, input: UpdateGroupInput): Group {
+  const data = requireData();
+  const existing = data.groups.find((g) => g.id === id);
+  if (!existing) throw new Error(`Group not found: ${id}`);
+  const updated: Group = { ...existing, ...input };
+  write({
+    ...data,
+    groups: data.groups.map((g) => (g.id === id ? updated : g)),
+  });
+  return updated;
 }

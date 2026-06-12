@@ -1,13 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { deriveCityMarkers, deriveRoutes } from '@/lib/transforms';
-import type { Diary, Group } from '@/types';
+import type { CityRef, Diary, Group } from '@/types';
 
+const SEOUL: CityRef = {
+  city: 'Seoul',
+  country: 'South Korea',
+  continent: 'Asia',
+  latitude: 37.5665,
+  longitude: 126.978,
+};
+
+// 기본 그룹은 출발/도착 없음(null) → 앵커 없이 날짜순만
 const groups: Group[] = [
   {
     id: 'group_a',
     userId: 'user_001',
     name: 'Trip A',
     color: '#FF0000',
+    departure: null,
+    arrival: null,
     visibility: 'private',
     createdAt: '2026-01-01T00:00:00.000Z',
   },
@@ -16,6 +27,8 @@ const groups: Group[] = [
     userId: 'user_001',
     name: 'Trip B',
     color: '#00FF00',
+    departure: null,
+    arrival: null,
     visibility: 'private',
     createdAt: '2026-01-01T00:00:00.000Z',
   },
@@ -84,6 +97,27 @@ describe('deriveCityMarkers', () => {
     expect(markers[0].groupColor).toBeNull();
   });
 
+  it('그룹 출발/도착지는 일기가 없어도 홈 마커로 표시', () => {
+    const gWithEnds: Group[] = [
+      { ...groups[0], departure: SEOUL, arrival: SEOUL },
+    ];
+    const diaries: Diary[] = [
+      makeDiary({ id: 'd1', city: 'Osaka', country: 'Japan', latitude: 34.6937, longitude: 135.5023, groupId: 'group_a' }),
+    ];
+    const markers = deriveCityMarkers(diaries, gWithEnds, SEOUL);
+    const seoul = markers.find((m) => m.city === 'Seoul');
+    expect(seoul?.isHome).toBe(true);
+    expect(seoul?.diaryCount).toBe(0);
+  });
+
+  it('그룹 없는 일기가 있으면 HOME 마커를 추가한다', () => {
+    const diaries: Diary[] = [
+      makeDiary({ id: 'd1', city: 'Bangkok', country: 'Thailand', latitude: 13.7, longitude: 100.5, groupId: null }),
+    ];
+    const markers = deriveCityMarkers(diaries, groups, SEOUL);
+    expect(markers.find((m) => m.city === 'Seoul')?.isHome).toBe(true);
+  });
+
   it('빈 배열 → 빈 결과', () => {
     const markers = deriveCityMarkers([], groups);
     expect(markers).toEqual([]);
@@ -137,16 +171,47 @@ describe('deriveRoutes', () => {
     expect(routes[0].groupColor).toBe('#FF0000');
   });
 
-  it('다른 그룹 간 경로 → groupColor null', () => {
+  it('서로 다른 그룹은 각자 독립 경로(교차 경로 없음)', () => {
     const diaries: Diary[] = [
       makeDiary({ id: 'd1', city: 'Tokyo', country: 'Japan', latitude: 35.6762, longitude: 139.6503, groupId: 'group_a', createdAt: '2026-01-01T01:00:00.000Z' }),
-      makeDiary({ id: 'd2', city: 'Osaka', country: 'Japan', latitude: 34.6937, longitude: 135.5023, groupId: 'group_b', createdAt: '2026-01-01T02:00:00.000Z' }),
+      makeDiary({ id: 'd2', city: 'Osaka', country: 'Japan', latitude: 34.6937, longitude: 135.5023, groupId: 'group_a', createdAt: '2026-01-01T02:00:00.000Z' }),
+      makeDiary({ id: 'd3', city: 'Sydney', country: 'Australia', latitude: -33.8, longitude: 151.2, groupId: 'group_b', createdAt: '2026-01-01T03:00:00.000Z' }),
+      makeDiary({ id: 'd4', city: 'Melbourne', country: 'Australia', latitude: -37.8, longitude: 144.9, groupId: 'group_b', createdAt: '2026-01-01T04:00:00.000Z' }),
     ];
     const routes = deriveRoutes(diaries, groups);
-    expect(routes[0].groupColor).toBeNull();
+    expect(routes).toHaveLength(2);
+    // group_a: Osaka→Sydney 같은 교차 경로는 생기지 않는다
+    expect(
+      routes.some((r) => r.from.city === 'Osaka' && r.to.city === 'Sydney'),
+    ).toBe(false);
   });
 
-  it('일기 1개 → 경로 없음', () => {
+  it('그룹 출발/도착지 → HOME 앵커로 감싼 경로', () => {
+    const gWithEnds: Group[] = [
+      { ...groups[0], departure: SEOUL, arrival: SEOUL },
+    ];
+    const diaries: Diary[] = [
+      makeDiary({ id: 'd1', city: 'Osaka', country: 'Japan', latitude: 34.6937, longitude: 135.5023, groupId: 'group_a', createdAt: '2026-01-01T01:00:00.000Z' }),
+    ];
+    const routes = deriveRoutes(diaries, gWithEnds);
+    expect(routes.map((r) => [r.from.city, r.to.city])).toEqual([
+      ['Seoul', 'Osaka'],
+      ['Osaka', 'Seoul'],
+    ]);
+  });
+
+  it('그룹 없는 일기 → 항상 HOME에서 출발·도착', () => {
+    const diaries: Diary[] = [
+      makeDiary({ id: 'd1', city: 'Bangkok', country: 'Thailand', latitude: 13.7, longitude: 100.5, groupId: null, createdAt: '2026-01-01T01:00:00.000Z' }),
+    ];
+    const routes = deriveRoutes(diaries, groups, SEOUL);
+    expect(routes.map((r) => [r.from.city, r.to.city])).toEqual([
+      ['Seoul', 'Bangkok'],
+      ['Bangkok', 'Seoul'],
+    ]);
+  });
+
+  it('일기 1개 + 그룹 앵커 없음 → 경로 없음', () => {
     const diaries: Diary[] = [
       makeDiary({ id: 'd1', city: 'Tokyo', country: 'Japan', latitude: 35.6762, longitude: 139.6503 }),
     ];

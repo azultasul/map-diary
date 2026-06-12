@@ -37,8 +37,9 @@ tests/
 
 ## 핵심 변환 함수 (프레임워크 비의존)
 
-- `diaries → cityMarkers`: `(city, country)` 기준 그룹화, 도시당 핀 하나, `diaryCount` 노출
-- `diaries → routes`: `created_at` 오름차순 정렬, 연속 동일 도시 합침
+- `deriveCityMarkers(diaries, groups, home)`: `(city, country)` 기준 그룹화, 도시당 핀 하나, `diaryCount` 노출. 그룹 출발/도착지(홈)는 일기 없어도 `isHome` 마커.
+- `deriveRoutes(diaries, groups, home)`: 그룹 단위 — `출발지 → (그룹 내 도시 createdAt 오름차순, 연속 동일 합침) → 도착지`. 그룹없음 일기는 `HOME → 도시들 → HOME`. 출발/도착 null이면 앵커 없이 날짜순만.
+- `home`은 `lib/home.ts`의 `HOME`(서울) 기본값 — 추후 사용자 거주지 설정으로 주입 교체.
 - 그룹 필터 시 diaries를 먼저 필터링 후 두 변환을 재계산
 - Three.js/React 타입 없이 순수 함수로 유지
 

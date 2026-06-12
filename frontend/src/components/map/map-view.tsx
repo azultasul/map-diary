@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { AllDiariesModal } from '@/components/diary/all-diaries-modal';
 import { CityDiaryModal } from '@/components/diary/city-diary-modal';
 import { DiaryFormModal } from '@/components/diary/diary-form-modal';
+import { GroupManageModal } from '@/components/diary/group-manage-modal';
 import { FloatingButtons } from '@/components/layout/floating-buttons';
 import { GlobeScene } from '@/components/map/globe/globe-scene';
 import { Map2DScene } from '@/components/map/map2d/map2d-scene';
@@ -62,6 +63,7 @@ export function MapView() {
       <CityDiaryModal />
       <AllDiariesModal />
       <DiaryFormModal />
+      <GroupManageModal />
     </div>
   );
 }

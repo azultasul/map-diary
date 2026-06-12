@@ -22,8 +22,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 도시 핀과 경로는 저장하지 않는다 — `diaries` 목록으로부터 계산한다.
 
-- `diaries → cityMarkers`: `(city, country)` 기준 그룹화. 도시당 핀 하나, `diaryCount` 노출.
-- `diaries → routes`: `created_at` 오름차순 정렬, 연속 동일 도시 합침.
+- `diaries → cityMarkers`: `(city, country)` 기준 그룹화. 도시당 핀 하나, `diaryCount` 노출. 그룹 출발/도착지(홈)는 일기가 없어도 `isHome` 마커로 표시.
+- `diaries → routes`: **그룹 단위로** 그린다 — `출발지 → (그룹 내 일기 도시 created_at 오름차순, 연속 동일 도시 합침) → 도착지`. 그룹의 `departure`/`arrival`이 null이면 앵커 없이 날짜순만. 그룹 없는 일기는 항상 `HOME → 도시들 → HOME`.
+- 홈(`HOME`, 현재 서울)은 그룹 없는 일기의 기본 출발/도착·새 그룹 기본값. `lib/home.ts` 단일 출처, 추후 사용자 거주지 설정으로 교체.
 - 그룹 필터 시 diaries를 먼저 필터링한 뒤 두 변환을 재계산.
 
 ## 데이터 모델 (ERD 초안, PRD §7)
@@ -31,6 +32,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 핵심 엔티티: `users`, `groups`, `diaries`, `diary_images`, `diary_shared_users`.
 
 - `diaries.group_id`는 nullable — 그룹 없이 일기 작성 가능. "그룹 없음"으로 필터에 노출.
+- `groups.departure`/`groups.arrival`는 트립 경로의 출발지/도착지(`CityRef`, nullable). 기본은 홈(서울).
 - `visibility` enum: `private` | `shared` | `friends` | `public`. MVP에서는 `private`만 사용.
 - `users.map_mode`는 마지막으로 선택한 지도 모드(3D vs 2D)를 저장.
 

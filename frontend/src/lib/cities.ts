@@ -1,13 +1,7 @@
-import type { Continent } from '@/types';
+import type { CityRef } from '@/types';
 
-// 일기 작성 시 도시 검색·선택용 데이터셋의 한 항목.
-// 도시 선택 시 diary의 city/country/continent/latitude/longitude를 채운다.
-export interface City {
-  city: string;
-  country: string;
-  continent: Continent;
-  latitude: number;
-  longitude: number;
+// 일기/그룹 출발·도착 선택용 데이터셋 항목. CityRef(좌표 포함)에 검색·표시용 한글을 더한다.
+export interface City extends CityRef {
   // 한글 표시명(있을 때) — 도시/국가
   ko?: string;
   countryKo?: string;

@@ -121,7 +121,8 @@ function declutterByDistance(
     const isSelected =
       selectedCityKey === cityKey(marker.city, marker.country);
     const tooClose = keptVectors.some((k) => distanceBetween(k, v) < threshold);
-    if (isSelected || !tooClose) {
+    // 홈(출발/도착지) 마커는 줌아웃에서도 항상 표시
+    if (isSelected || marker.isHome || !tooClose) {
       kept.push(marker);
       keptVectors.push(v);
     }

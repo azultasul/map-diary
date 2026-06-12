@@ -24,6 +24,10 @@ interface UIState {
   editingDiaryId: string | null;
   setEditingDiaryId: (id: string | null) => void;
 
+  // 그룹 관리(출발/도착 편집) 모달
+  groupManageOpen: boolean;
+  setGroupManageOpen: (open: boolean) => void;
+
   // 카메라가 선택 도시를 중앙에 정착시킨 뒤 설정되는 모달 오픈 신호
   centeredCityKey: string | null;
   setCenteredCityKey: (key: string | null) => void;
@@ -65,6 +69,9 @@ export const useUIStore = create<UIState>()(
 
       editingDiaryId: null,
       setEditingDiaryId: (id) => set({ editingDiaryId: id }),
+
+      groupManageOpen: false,
+      setGroupManageOpen: (open) => set({ groupManageOpen: open }),
 
       selectedCityKey: null,
       // 새 도시 선택 시 중앙 정착 신호를 초기화 — 카메라 이동 완료 후 다시 설정된다

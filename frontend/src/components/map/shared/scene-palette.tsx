@@ -21,6 +21,8 @@ export interface ScenePalette {
   // groupColor 없을 때 fallback
   defaultPin: string;
   defaultRoute: string;
+  // 홈(출발/도착지) 마커 색 — 일반 핀과 구분
+  home: string;
   // 대기 글로우(오로라) 강도 배율 — 라이트에서 은은하게 낮춘다
   atmosphereStrength: number;
 }
@@ -33,6 +35,7 @@ export const DARK_PALETTE: ScenePalette = {
   routeDot: '#ffffff',
   defaultPin: '#f5f5f5',
   defaultRoute: '#9aa4b8',
+  home: '#ffd479',
   atmosphereStrength: 1.0,
 };
 
@@ -46,6 +49,7 @@ export const LIGHT_PALETTE: ScenePalette = {
   routeDot: '#9ca3ad',
   defaultPin: '#475569',
   defaultRoute: '#64748b',
+  home: '#e08a2b',
   // 라이트에선 오로라를 더 연하게 (additive라 밝은 배경에서 과하지 않게)
   atmosphereStrength: 0.18,
 };

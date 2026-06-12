@@ -4,6 +4,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { CityCombobox } from '@/components/diary/city-combobox';
+import {
+  GROUP_COLORS,
+  type GroupDraft,
+  GroupEditor,
+} from '@/components/diary/group-editor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,15 +23,17 @@ import {
 import type { City } from '@/lib/cities';
 import { type DiaryFormValues, diaryFormSchema } from '@/lib/diary-schema';
 import { cityKey } from '@/lib/geo';
-import { cn } from '@/lib/utils';
+import { HOME } from '@/lib/home';
 import { useUIStore } from '@/stores/ui-store';
 
-// 새 그룹 선택 색 팔레트(기존 그룹 색감과 동일 계열)
-const GROUP_COLORS = [
-  '#FF6B9A', '#4DD6B6', '#FFB347', '#7C8CFF',
-  '#5BC0EB', '#C792EA', '#FFD166', '#6FCF97',
-];
 const NEW_GROUP = '__new__';
+
+const EMPTY_GROUP: GroupDraft = {
+  name: '',
+  color: GROUP_COLORS[0],
+  departure: HOME,
+  arrival: HOME,
+};
 
 const EMPTY: DiaryFormValues = {
   title: '',
@@ -48,8 +55,7 @@ export function DiaryFormModal() {
   const updateDiary = useUpdateDiary();
   const createGroup = useCreateGroup();
 
-  const [newGroupName, setNewGroupName] = useState('');
-  const [newGroupColor, setNewGroupColor] = useState(GROUP_COLORS[0]);
+  const [newGroup, setNewGroup] = useState<GroupDraft>(EMPTY_GROUP);
   const [newGroupError, setNewGroupError] = useState('');
 
   const editing = editingDiaryId
@@ -75,8 +81,7 @@ export function DiaryFormModal() {
     if (!diaryFormOpen) return;
     // 외부(모달 open/editing) → 폼 동기화. open 시 1회성이라 cascading render 우려 없음.
     /* eslint-disable react-hooks/set-state-in-effect */
-    setNewGroupName('');
-    setNewGroupColor(GROUP_COLORS[0]);
+    setNewGroup(EMPTY_GROUP);
     setNewGroupError('');
     /* eslint-enable react-hooks/set-state-in-effect */
     if (editing) {
@@ -106,14 +111,16 @@ export function DiaryFormModal() {
     let groupId = values.groupId;
     // 새 그룹 모드면 먼저 그룹을 생성하고 그 id를 사용한다.
     if (groupId === NEW_GROUP) {
-      const name = newGroupName.trim();
+      const name = newGroup.name.trim();
       if (!name) {
         setNewGroupError('그룹 이름을 입력하세요');
         return;
       }
       const group = await createGroup.mutateAsync({
         name,
-        color: newGroupColor,
+        color: newGroup.color,
+        departure: newGroup.departure,
+        arrival: newGroup.arrival,
       });
       groupId = group.id;
     }
@@ -208,52 +215,15 @@ export function DiaryFormModal() {
           </select>
 
           {creatingGroup && (
-            <div className="space-y-2 rounded-md border border-border bg-muted/30 p-3">
-              <Input
-                placeholder="새 그룹 이름"
-                value={newGroupName}
-                aria-invalid={!!newGroupError}
-                onChange={(e) => {
-                  setNewGroupName(e.target.value);
+            <div className="rounded-md border border-border bg-muted/30 p-3">
+              <GroupEditor
+                value={newGroup}
+                onChange={(next) => {
+                  setNewGroup(next);
                   if (newGroupError) setNewGroupError('');
                 }}
+                nameError={newGroupError}
               />
-              <div className="flex flex-wrap items-center gap-1.5">
-                {GROUP_COLORS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    aria-label={`색 ${c}`}
-                    onClick={() => setNewGroupColor(c)}
-                    style={{ backgroundColor: c }}
-                    className={cn(
-                      'h-6 w-6 rounded-full ring-offset-2 ring-offset-background transition',
-                      newGroupColor.toLowerCase() === c.toLowerCase() &&
-                        'ring-2 ring-foreground',
-                    )}
-                  />
-                ))}
-                {/* 직접 색 선택 — 팔레트 외 임의 색 */}
-                <label
-                  className="relative h-6 w-6 cursor-pointer overflow-hidden rounded-full border border-border"
-                  aria-label="색 직접 선택"
-                  title="직접 선택"
-                  style={{
-                    background:
-                      'conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)',
-                  }}
-                >
-                  <input
-                    type="color"
-                    value={newGroupColor}
-                    onChange={(e) => setNewGroupColor(e.target.value)}
-                    className="absolute inset-0 cursor-pointer opacity-0"
-                  />
-                </label>
-              </div>
-              {newGroupError && (
-                <p className="text-xs text-destructive">{newGroupError}</p>
-              )}
             </div>
           )}
         </div>

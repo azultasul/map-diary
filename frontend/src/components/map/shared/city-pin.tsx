@@ -1,6 +1,6 @@
 'use client';
 
-import { Html } from '@react-three/drei';
+import { Billboard, Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import type { Group, Vector3 } from 'three';
@@ -31,7 +31,10 @@ export function CityPin({
   const setSelectedCityKey = useUIStore((s) => s.setSelectedCityKey);
   const setHoveredCityKey = useUIStore((s) => s.setHoveredCityKey);
 
-  const color = marker.groupColor ?? palette.defaultPin;
+  const isHome = !!marker.isHome;
+  // 홈이지만 일기가 없는 도시는 표시 전용(클릭/hover 비활성)
+  const displayOnly = isHome && marker.diaryCount === 0;
+  const color = isHome ? palette.home : (marker.groupColor ?? palette.defaultPin);
 
   useEffect(() => {
     return () => {
@@ -55,30 +58,45 @@ export function CityPin({
 
   return (
     <group ref={groupRef} position={position}>
-      {/* 투명 hit-area — 보이는 글로우(*1.6)와 같은 크기로 맞춰 hover 범위가
-          시각과 일치하게 한다. 겹친 도시도 정확히 타겟할 수 있다. */}
-      <mesh
-        onClick={(e) => {
-          e.stopPropagation();
-          setSelectedCityKey(key);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          setHovered(true);
-          hoveredRef.current = true;
-          setHoveredCityKey(key);
-          document.body.style.cursor = 'pointer';
-        }}
-        onPointerOut={() => {
-          setHovered(false);
-          hoveredRef.current = false;
-          setHoveredCityKey(null);
-          document.body.style.cursor = 'auto';
-        }}
-      >
-        <sphereGeometry args={[PIN_RADIUS * 1.6, 16, 16]} />
-        <meshBasicMaterial transparent opacity={0.001} depthWrite={false} />
-      </mesh>
+      {/* 투명 hit-area — 표시 전용 홈 핀은 생략해 클릭이 통과하게 한다 */}
+      {!displayOnly && (
+        <mesh
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedCityKey(key);
+          }}
+          onPointerOver={(e) => {
+            e.stopPropagation();
+            setHovered(true);
+            hoveredRef.current = true;
+            setHoveredCityKey(key);
+            document.body.style.cursor = 'pointer';
+          }}
+          onPointerOut={() => {
+            setHovered(false);
+            hoveredRef.current = false;
+            setHoveredCityKey(null);
+            document.body.style.cursor = 'auto';
+          }}
+        >
+          <sphereGeometry args={[PIN_RADIUS * 1.6, 16, 16]} />
+          <meshBasicMaterial transparent opacity={0.001} depthWrite={false} />
+        </mesh>
+      )}
+      {/* 홈 마커 — 카메라를 향한 링으로 일반 핀과 구분 */}
+      {isHome && (
+        <Billboard raycast={() => null}>
+          <mesh>
+            <ringGeometry args={[PIN_RADIUS * 1.8, PIN_RADIUS * 2.3, 24]} />
+            <meshBasicMaterial
+              color={palette.home}
+              transparent
+              opacity={0.9}
+              depthWrite={false}
+            />
+          </mesh>
+        </Billboard>
+      )}
       {/* 비주얼 핀 — 레이캐스팅 비활성 */}
       <mesh raycast={() => null}>
         <sphereGeometry args={[PIN_RADIUS, 16, 16]} />

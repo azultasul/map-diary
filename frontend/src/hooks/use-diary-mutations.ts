@@ -5,10 +5,12 @@ import {
   type CreateDiaryInput,
   type CreateGroupInput,
   type UpdateDiaryInput,
+  type UpdateGroupInput,
   createDiary,
   createGroup,
   deleteDiary,
   updateDiary,
+  updateGroup,
 } from '@/lib/diary-repo';
 
 const MOCK_DATA_KEY = ['mock-data'] as const;
@@ -47,6 +49,16 @@ export function useCreateGroup() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: CreateGroupInput) => createGroup(input),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: MOCK_DATA_KEY }),
+  });
+}
+
+export function useUpdateGroup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, input }: { id: string; input: UpdateGroupInput }) =>
+      updateGroup(id, input),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: MOCK_DATA_KEY }),
   });

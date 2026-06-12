@@ -323,6 +323,8 @@ groups
 * user_id
 * name
 * color
+* departure (CityRef, nullable) — 트립 경로 출발지. 기본 홈(서울)
+* arrival (CityRef, nullable) — 트립 경로 도착지. 기본 홈(서울)
 * visibility
 * created_at
 
@@ -376,6 +378,7 @@ diary_shared_users
 ### 필드 보충 설명
 
 * `diaries.group_id`: **nullable** — 그룹 없이 일기를 작성할 수 있다. 그룹 필터 UI에서는 "그룹 없음" 항목으로 노출한다.
+* `groups.departure`/`groups.arrival`: 트립 경로의 출발지/도착지(`CityRef`={city,country,continent,latitude,longitude}, nullable). 새 그룹 기본값은 홈(서울). 경로는 그룹 단위로 `출발지 → 도시들(날짜순) → 도착지`로 그리며, null이면 앵커 없이 날짜순만. 그룹 없는 일기는 항상 홈에서 출발·도착한다. 홈은 추후 사용자 거주지 설정으로 대체.
 * `diary_images.order_index`: 현재 최대 2장이지만, 향후 확장을 고려하여 순서 인덱스를 유지한다.
 
 ---

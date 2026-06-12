@@ -1,10 +1,11 @@
 'use client';
 
-import { Check, Globe, List, Map as MapIcon, Plus, SlidersHorizontal } from 'lucide-react';
+import { Check, Globe, List, Map as MapIcon, Plus, Settings2, SlidersHorizontal } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
@@ -31,6 +32,7 @@ export function FloatingButtons() {
   const setMapMode = useUIStore((s) => s.setMapMode);
   const setAllDiariesOpen = useUIStore((s) => s.setAllDiariesOpen);
   const setDiaryFormOpen = useUIStore((s) => s.setDiaryFormOpen);
+  const setGroupManageOpen = useUIStore((s) => s.setGroupManageOpen);
 
   const hasGroups = !!groups && groups.length > 0;
   const hasUngrouped = !!diaries && diaries.some((d) => d.groupId === null);
@@ -86,6 +88,16 @@ export function FloatingButtons() {
                 </DropdownMenuItem>
               );
             })}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => setGroupManageOpen(true)}
+              className="gap-2"
+            >
+              <span className="flex h-3 w-3 items-center justify-center">
+                <Settings2 className="h-3.5 w-3.5" />
+              </span>
+              <span className="flex-1">그룹 관리</span>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )}

@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { City } from '@/lib/cities';
-import { createDiary, deleteDiary, updateDiary } from '@/lib/diary-repo';
+import {
+  createDiary,
+  createGroup,
+  deleteDiary,
+  updateDiary,
+  updateGroup,
+} from '@/lib/diary-repo';
 import type { MockData } from '@/types';
 
 const STORAGE_KEY = 'map-diary:data';
@@ -108,6 +114,26 @@ describe('diary-repo CRUD', () => {
     });
     deleteDiary(d.id);
     expect(currentDiaries()).toHaveLength(0);
+  });
+
+  it('createGroup/updateGroup은 출발·도착지를 저장·수정한다', () => {
+    const g = createGroup({
+      name: '새 여행',
+      color: '#abcdef',
+      departure: { ...city },
+      arrival: { ...city },
+    });
+    expect(g.departure?.city).toBe('Seoul');
+    expect(g.arrival?.city).toBe('Seoul');
+    const busan: City = { ...city, city: 'Busan' };
+    const u = updateGroup(g.id, {
+      name: '수정 여행',
+      color: '#abcdef',
+      departure: busan,
+      arrival: { ...city },
+    });
+    expect(u.name).toBe('수정 여행');
+    expect(u.departure?.city).toBe('Busan');
   });
 
   it('변경은 localStorage에 영속된다(다시 읽어도 유지)', () => {

@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { fetchMockData } from '@/lib/api';
+import { HOME } from '@/lib/home';
 import { deriveCityMarkers, deriveRoutes } from '@/lib/transforms';
 import { useUIStore } from '@/stores/ui-store';
 import type { Diary } from '@/types';
@@ -62,7 +63,7 @@ export function useCityMarkers() {
     queryFn: fetchMockData,
     select: (data) => {
       const filtered = filterDiaries(data.diaries, selectedGroupId);
-      return deriveCityMarkers(filtered, data.groups);
+      return deriveCityMarkers(filtered, data.groups, HOME);
     },
   });
 }
@@ -75,7 +76,7 @@ export function useRoutes() {
     queryFn: fetchMockData,
     select: (data) => {
       const filtered = filterDiaries(data.diaries, selectedGroupId);
-      return deriveRoutes(filtered, data.groups);
+      return deriveRoutes(filtered, data.groups, HOME);
     },
   });
 }
